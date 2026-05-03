@@ -13,7 +13,6 @@ function showSection(section) {
     if (section === "history") renderHistory();
 }
 
-// Մոդալ պատուհաններ
 function openModal() { document.getElementById("modal").classList.remove("hidden"); }
 function closeModal() { document.getElementById("modal").classList.add("hidden"); }
 function closeCart() { document.getElementById("cart-modal").classList.add("hidden"); }
@@ -26,25 +25,23 @@ function addProduct() {
 
     if (!name || !price) return alert("Լրացրեք անունն ու գինը");
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const newProd = { id: Date.now(), name, price: parseInt(price), img: e.target.result };
+    const save = (imgData) => {
+        const newProd = { id: Date.now(), name, price: parseInt(price), img: imgData };
         products.push(newProd);
         localStorage.setItem("myProducts", JSON.stringify(products));
         renderCatalog();
         closeModal();
         document.getElementById("prod-name").value = "";
         document.getElementById("prod-price").value = "";
+        document.getElementById("prod-img-file").value = "";
     };
 
     if (fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => save(e.target.result);
         reader.readAsDataURL(fileInput.files[0]);
     } else {
-        const newProd = { id: Date.now(), name, price: parseInt(price), img: "https://via.placeholder.com/150" };
-        products.push(newProd);
-        localStorage.setItem("myProducts", JSON.stringify(products));
-        renderCatalog();
-        closeModal();
+        save("https://via.placeholder.com/150");
     }
 }
 
@@ -74,7 +71,7 @@ function deleteProduct(id) {
 function addToCart(id) {
     const p = products.find(x => x.id === id);
     const qty = prompt(p.name + "\nՔանակը:", 1);
-    if (qty > 0) {
+    if (qty && qty > 0) {
         cart.push({ ...p, qty: parseInt(qty) });
         updateCartUI();
     }
@@ -106,7 +103,7 @@ function showCart() {
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
 
-// Պատվերի պահպանում
+// ՊԱՏՎԵՐԻ ՊԱՀՊԱՆՈՒՄ (ՈՒՂՂՎԱԾ)
 function checkout() {
     const user = prompt("Պատվիրատուի անունը:");
     if (!user) return;
@@ -115,31 +112,45 @@ function checkout() {
     const newOrder = {
         id: Date.now(),
         customer: user,
-        items: [...cart],
+        items: JSON.parse(JSON.stringify(cart)), // Սա կարևոր է տվյալների պահպանման համար
         total: total,
         date: new Date().toLocaleString("hy-AM")
     };
 
+    // Ավելացնում ենք պատմության մեջ
     history.unshift(newOrder);
+    
+    // ՍԱ Է ԱՄԵՆԱԿԱՐԵՎՈՐ ՄԱՍԸ - ՊԱՀՈՒՄ ԵՆՔ ՀԻՇՈՂՈՒԹՅԱՆ ՄԵՋ
     localStorage.setItem("orderHistory", JSON.stringify(history));
     
+    // Մաքրում ենք զամբյուղը
     cart = [];
     updateCartUI();
+    
+    // Փակում ենք զամբյուղի պատուհանը
     closeCart();
+    
+    // Ցույց ենք տալիս պատմության բաժինը
     showSection('history');
+    
+    alert("Պատվերը հաջողությամբ պահպանվեց!");
 }
 
 function renderHistory() {
     const list = document.getElementById("history-list");
+    if (history.length === 0) {
+        list.innerHTML = '<div class="text-center py-20 text-gray-400">Պատմությունը դատարկ է</div>';
+        return;
+    }
     list.innerHTML = history.map(h => `
-        <div class="bg-white p-3 rounded-2xl shadow-sm border-l-4 border-blue-500">
+        <div class="bg-white p-3 rounded-2xl shadow-sm border-l-4 border-blue-500 mb-4">
             <div class="flex justify-between items-center mb-2">
                 <span class="font-black text-gray-800">${h.customer}</span>
                 <span class="font-bold text-green-600 text-sm">${h.total.toLocaleString()} ֏</span>
             </div>
             <div class="bg-gray-50 p-2 rounded-xl space-y-1">
                 ${h.items.map(i => `
-                    <div class="flex justify-between items-center py-1">
+                    <div class="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
                         <div class="flex items-center gap-2">
                             <img src="${i.img}" class="w-7 h-7 object-cover rounded">
                             <span class="text-[10px] text-gray-600">${i.name} (x${i.qty})</span>
