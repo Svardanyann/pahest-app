@@ -79,6 +79,11 @@
         <span class="text-xl">📜</span> Պատմություն
       </button>
     </nav>
+    <!-- Նկարը մեծացնելու պատուհան -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden flex items-center justify-center z-50 p-4" onclick="closeImage()">
+    <img id="full-image" src="" class="max-w-full max-h-full rounded-lg shadow-2xl">
+    <button class="absolute top-5 right-5 text-white text-3xl font-bold">&times;</button>
+</div>
 
     <script>
       let products = JSON.parse(localStorage.getItem("myProducts")) || [];
@@ -136,18 +141,21 @@
       }
 
       function renderCatalog() {
-        const list = document.getElementById("product-list");
-        list.innerHTML = products.length === 0 ? '<p class="col-span-2 text-center text-gray-400 mt-10">Ապրանք չկա</p>' : "";
-        products.forEach((p) => {
-          list.innerHTML += `
-            <div class="bg-white p-2 rounded-lg shadow border border-gray-100">
-                <img src="${p.img}" class="w-full h-32 object-cover rounded mb-2 shadow-sm">
-                <div class="font-bold text-sm h-10 overflow-hidden">${p.name}</div>
-                <div class="text-blue-600 font-bold mb-2">${p.price} ֏</div>
-                <button onclick="addToCart(${p.id})" class="w-full bg-orange-500 text-white py-2 rounded-lg text-xs font-bold">+ Ավելացնել</button>
-            </div>`;
-        });
-      }
+    const list = document.getElementById("product-list");
+    list.innerHTML = products.length === 0 ? '<p class="col-span-2 text-center text-gray-400 mt-10">Ապրանք չկա</p>' : "";
+    products.forEach((p) => {
+      list.innerHTML += `
+        <div class="bg-white p-2 rounded-lg shadow border border-gray-100">
+            <!-- Այստեղ ավելացրել ենք onclick="openImage('${p.img}')" -->
+            <img src="${p.img}" 
+                 onclick="openImage('${p.img}')" 
+                 class="w-full h-32 object-cover rounded mb-2 shadow-sm cursor-pointer active:opacity-80">
+            <div class="font-bold text-sm h-10 overflow-hidden">${p.name}</div>
+            <div class="text-blue-600 font-bold mb-2">${p.price} ֏</div>
+            <button onclick="addToCart(${p.id})" class="w-full bg-orange-500 text-white py-2 rounded-lg text-xs font-bold">+ Ավելացնել</button>
+        </div>`;
+    });
+}
 
       function addToCart(prodId) {
           const product = products.find(p => p.id === prodId);
@@ -204,6 +212,16 @@
           alert("Պատվերը պահպանվեց հաջողությամբ!");
           showSection('history');
       }
+      function openImage(src) {
+    const modal = document.getElementById("image-modal");
+    const fullImg = document.getElementById("full-image");
+    fullImg.src = src;
+    modal.classList.remove("hidden");
+}
+
+function closeImage() {
+    document.getElementById("image-modal").classList.add("hidden");
+}
 
       function renderHistory() {
         const list = document.getElementById("history-list");
