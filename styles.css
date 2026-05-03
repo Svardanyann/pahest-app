@@ -1,3 +1,23 @@
-h1 {
-  text-decoration: underline;
+.cart-badge { 
+    position: absolute; 
+    top: -5px; 
+    right: -10px; 
+    background: red; 
+    color: white; 
+    border-radius: 50%; 
+    padding: 2px 6px; 
+    font-size: 10px; 
+}
+
+.modal-anim { 
+    animation: fadeIn 0.2s ease-out; 
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0; transform: scale(0.95); } 
+    to { opacity: 1; transform: scale(1); } 
+}
+
+img {
+    pointer-events: auto;
 }
