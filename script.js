@@ -2,14 +2,11 @@ let products = JSON.parse(localStorage.getItem("myProducts")) || [];
 let history = JSON.parse(localStorage.getItem("orderHistory")) || [];
 let cart = [];
 
-// Էկրանների փոփոխություն
 function showSection(section) {
     document.getElementById("catalog-section").classList.toggle("hidden", section !== "catalog");
     document.getElementById("history-section").classList.toggle("hidden", section !== "history");
-    
     document.getElementById("nav-catalog").className = section === 'catalog' ? 'flex flex-col items-center flex-1 text-blue-600 font-bold' : 'flex flex-col items-center flex-1 text-gray-400';
     document.getElementById("nav-history").className = section === 'history' ? 'flex flex-col items-center flex-1 text-blue-600 font-bold' : 'flex flex-col items-center flex-1 text-gray-400';
-    
     if (section === "history") renderHistory();
 }
 
@@ -17,35 +14,48 @@ function openModal() { document.getElementById("modal").classList.remove("hidden
 function closeModal() { document.getElementById("modal").classList.add("hidden"); }
 function closeCart() { document.getElementById("cart-modal").classList.add("hidden"); }
 
-// Ապրանքի ավելացում
-function addProduct() {
+// Նկարի սեղմման ֆունկցիա, որ տեղ անի localStorage-ում
+function compressImage(base64Str, maxWidth = 400) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = base64Str;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const scale = maxWidth / img.width;
+            canvas.width = maxWidth;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7)); // 0.7 որակը բավարար է
+        };
+    });
+}
+
+async function addProduct() {
     const name = document.getElementById("prod-name").value;
     const price = document.getElementById("prod-price").value;
     const fileInput = document.getElementById("prod-img-file");
 
-    if (!name || !price) return alert("Լրացրեք անունն ու գինը");
+    if (!name || !price) return alert("Լրացրեք տվյալները");
 
-    const save = (imgData) => {
-        const newProd = { id: Date.now(), name, price: parseInt(price), img: imgData };
-        products.push(newProd);
-        localStorage.setItem("myProducts", JSON.stringify(products));
-        renderCatalog();
-        closeModal();
-        document.getElementById("prod-name").value = "";
-        document.getElementById("prod-price").value = "";
-        document.getElementById("prod-img-file").value = "";
-    };
-
+    let finalImg = "https://via.placeholder.com/150";
     if (fileInput.files[0]) {
         const reader = new FileReader();
-        reader.onload = (e) => save(e.target.result);
+        const promise = new Promise(resolve => reader.onload = e => resolve(e.target.result));
         reader.readAsDataURL(fileInput.files[0]);
-    } else {
-        save("https://via.placeholder.com/150");
+        const rawImg = await promise;
+        finalImg = await compressImage(rawImg);
     }
+
+    products.push({ id: Date.now(), name, price: parseInt(price), img: finalImg });
+    localStorage.setItem("myProducts", JSON.stringify(products));
+    renderCatalog();
+    closeModal();
+    document.getElementById("prod-name").value = "";
+    document.getElementById("prod-price").value = "";
+    document.getElementById("prod-img-file").value = "";
 }
 
-// Կատալոգի արտապատկերում
 function renderCatalog() {
     const list = document.getElementById("product-list");
     list.innerHTML = products.map(p => `
@@ -60,19 +70,18 @@ function renderCatalog() {
 }
 
 function deleteProduct(id) {
-    if (confirm("Ջնջե՞լ ապրանքը:")) {
+    if (confirm("Ջնջե՞լ:")) {
         products = products.filter(p => p.id !== id);
         localStorage.setItem("myProducts", JSON.stringify(products));
         renderCatalog();
     }
 }
 
-// Զամբյուղ
 function addToCart(id) {
     const p = products.find(x => x.id === id);
     const qty = prompt(p.name + "\nՔանակը:", 1);
     if (qty && qty > 0) {
-        cart.push({ ...p, qty: parseInt(qty) });
+        cart.push({ name: p.name, price: p.price, img: p.img, qty: parseInt(qty) });
         updateCartUI();
     }
 }
@@ -103,7 +112,6 @@ function showCart() {
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
 
-// ՊԱՏՎԵՐԻ ՊԱՀՊԱՆՈՒՄ (ՈՒՂՂՎԱԾ)
 function checkout() {
     const user = prompt("Պատվիրատուի անունը:");
     if (!user) return;
@@ -112,34 +120,28 @@ function checkout() {
     const newOrder = {
         id: Date.now(),
         customer: user,
-        items: JSON.parse(JSON.stringify(cart)), // Սա կարևոր է տվյալների պահպանման համար
+        items: [...cart],
         total: total,
         date: new Date().toLocaleString("hy-AM")
     };
 
-    // Ավելացնում ենք պատմության մեջ
     history.unshift(newOrder);
     
-    // ՍԱ Է ԱՄԵՆԱԿԱՐԵՎՈՐ ՄԱՍԸ - ՊԱՀՈՒՄ ԵՆՔ ՀԻՇՈՂՈՒԹՅԱՆ ՄԵՋ
-    localStorage.setItem("orderHistory", JSON.stringify(history));
-    
-    // Մաքրում ենք զամբյուղը
-    cart = [];
-    updateCartUI();
-    
-    // Փակում ենք զամբյուղի պատուհանը
-    closeCart();
-    
-    // Ցույց ենք տալիս պատմության բաժինը
-    showSection('history');
-    
-    alert("Պատվերը հաջողությամբ պահպանվեց!");
+    try {
+        localStorage.setItem("orderHistory", JSON.stringify(history));
+        cart = [];
+        updateCartUI();
+        closeCart(); // Սա հաստատ կփակի զամբյուղը
+        showSection('history');
+    } catch (e) {
+        alert("Հիշողությունը լիքն է: Ջնջեք հին պատվերները կամ ապրանքները:");
+    }
 }
 
 function renderHistory() {
     const list = document.getElementById("history-list");
     if (history.length === 0) {
-        list.innerHTML = '<div class="text-center py-20 text-gray-400">Պատմությունը դատարկ է</div>';
+        list.innerHTML = '<div class="text-center py-20 text-gray-400">Դատարկ է</div>';
         return;
     }
     list.innerHTML = history.map(h => `
@@ -165,12 +167,11 @@ function renderHistory() {
 }
 
 function clearHistory() {
-    if (confirm("Մաքրե՞լ պատմությունը:")) {
+    if (confirm("Մաքրե՞լ:")) {
         history = [];
         localStorage.setItem("orderHistory", JSON.stringify(history));
         renderHistory();
     }
 }
 
-// Սկզբնական բեռնում
 renderCatalog();
