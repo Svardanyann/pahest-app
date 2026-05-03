@@ -67,6 +67,31 @@
             <span class="text-xl">📜</span> <span class="text-[10px]">ՊԱՏՄՈՒԹՅՈՒՆ</span>
         </button>
     </nav>
+    <div id="history-section" class="hidden p-4 pb-24">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-black text-gray-800">Պատմություն</h1>
+        <!-- Նոր ջնջելու կոճակը -->
+        <button id="delete-selected-btn" onclick="deleteSelected()" class="hidden bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-red-200">
+            Ջնջել ընտրվածները
+        </button>
+    </div>
+    <div id="history-list" class="space-y-1"></div>
+</div>
+    <!-- Պատվերի մանրամասների պատուհան (Order Details Modal) -->
+<div id="order-details-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div onclick="closeOrderDetails()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl animate-slide-up">
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 sm:hidden"></div>
+        
+        <div id="order-details-content">
+            <!-- Կոդով կլցվի այստեղ -->
+        </div>
+
+        <button onclick="closeOrderDetails()" class="w-full mt-8 bg-gray-100 text-gray-800 py-4 rounded-2xl font-black active:scale-95 transition-transform">
+            ՓԱԿԵԼ
+        </button>
+    </div>
+</div>
 
     <script src="script.js"></script>
 </body>
