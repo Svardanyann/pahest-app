@@ -2,96 +2,90 @@
 <html lang="hy">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Իմ Պահեստը</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Իմ Խանութը</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        .hidden { display: none; }
+    </style>
 </head>
-<body class="bg-gray-100 pb-24">
-    <div class="bg-blue-600 text-white p-4 sticky top-0 z-10 flex justify-between items-center shadow-md">
-        <h1 class="font-bold text-lg italic">Իմ Վաճառքները</h1>
-        <button onclick="openModal()" class="bg-white text-blue-600 px-3 py-1 rounded-lg text-sm font-bold shadow-lg">+ Ապրանք</button>
-    </div>
+<body class="bg-gray-100 font-sans">
 
-    <div id="app" class="p-4">
-        <div id="catalog-section">
-            <div id="product-list" class="grid grid-cols-2 gap-4"></div>
+    <!-- Կատալոգի Բաժին -->
+    <div id="catalog-section" class="p-4 pb-24">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-black text-gray-800">Ապրանքներ</h1>
+            <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-200">+ ՆՈՐ</button>
         </div>
-        <div id="history-section" class="hidden">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="font-bold text-gray-700">Պատմություն</h2>
-                <button onclick="clearHistory()" class="text-red-500 text-xs border border-red-200 px-2 py-1 rounded">Մաքրել</button>
-            </div>
-            <div id="history-list" class="space-y-4"></div>
-        </div>
+        <div id="product-list" class="grid grid-cols-2 gap-3"></div>
     </div>
 
-    <div id="cart-btn" class="fixed bottom-20 right-4 z-20 hidden">
-        <button onclick="showCart()" class="bg-orange-500 text-white p-4 rounded-full shadow-2xl relative">
-            <span class="text-2xl">🛒</span>
-            <span id="cart-count" class="cart-badge font-bold">0</span>
-        </button>
-    </div>
-
-    <!-- Modals -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-40">
-        <div class="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl modal-anim">
-            <h3 class="font-bold mb-4">Ավելացնել Ապրանք</h3>
-            <input id="prod-name" type="text" placeholder="Անուն" class="w-full border p-3 mb-3 rounded-xl outline-none" />
-            <input id="prod-price" type="number" placeholder="Գին" class="w-full border p-3 mb-3 rounded-xl outline-none" />
-            <input id="prod-img-file" type="file" accept="image/*" class="w-full border p-2 mb-5 rounded-xl text-sm" />
-            <div class="flex gap-2 font-bold">
-                <button onclick="closeModal()" class="flex-1 border p-3 rounded-xl">Չեղարկել</button>
-                <button onclick="addProduct()" class="flex-1 bg-blue-600 text-white p-3 rounded-xl">Ավելացնել</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-40">
-        <div class="bg-white p-6 rounded-2xl w-full max-w-sm flex flex-col modal-anim">
-            <h3 class="font-bold mb-4 border-b pb-2">Զամբյուղ</h3>
-            <div id="cart-items" class="space-y-3 mb-4 overflow-y-auto max-h-[50vh]"></div>
-            <div class="font-bold text-lg text-right mb-4 text-blue-600" id="cart-total-price">0 ֏</div>
-            <div class="flex gap-2">
-                <button onclick="closeCart()" class="flex-1 border p-3 rounded-xl text-gray-500 font-bold">Փակել</button>
-                <button onclick="checkout()" class="flex-1 bg-green-600 text-white p-3 rounded-xl font-bold shadow-lg">ՊԱՀՊԱՆԵԼ</button>
-            </div>
-        </div>
-    </div>
-
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-3 z-10 shadow-lg">
-        <button onclick="showSection('catalog')" class="flex flex-col items-center flex-1 text-blue-600 font-bold" id="nav-catalog">
-            <span class="text-xl">📦</span> <span class="text-[10px]">ԿԱՏԱԼՈԳ</span>
-        </button>
-        <button onclick="showSection('history')" class="flex flex-col items-center flex-1 text-gray-400" id="nav-history">
-            <span class="text-xl">📜</span> <span class="text-[10px]">ՊԱՏՄՈՒԹՅՈՒՆ</span>
-        </button>
-    </nav>
+    <!-- Պատմության Բաժին -->
     <div id="history-section" class="hidden p-4 pb-24">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-black text-gray-800">Պատմություն</h1>
-        <!-- Նոր ջնջելու կոճակը -->
-        <button id="delete-selected-btn" onclick="deleteSelected()" class="hidden bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-red-200">
-            Ջնջել ընտրվածները
-        </button>
-    </div>
-    <div id="history-list" class="space-y-1"></div>
-</div>
-    <!-- Պատվերի մանրամասների պատուհան (Order Details Modal) -->
-<div id="order-details-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div onclick="closeOrderDetails()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-    <div class="relative bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl animate-slide-up">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 sm:hidden"></div>
-        
-        <div id="order-details-content">
-            <!-- Կոդով կլցվի այստեղ -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-black text-gray-800">Պատվերներ</h1>
+            <button id="delete-selected-btn" onclick="deleteSelected()" class="hidden bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-red-200">
+                Ջնջել ընտրվածները (0)
+            </button>
         </div>
+        <div id="history-list" class="space-y-1"></div>
+    </div>
 
-        <button onclick="closeOrderDetails()" class="w-full mt-8 bg-gray-100 text-gray-800 py-4 rounded-2xl font-black active:scale-95 transition-transform">
-            ՓԱԿԵԼ
+    <!-- Ներքևի Նավիգացիա -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t flex py-3 px-6 z-50">
+        <button id="nav-catalog" onclick="showSection('catalog')" class="flex flex-col items-center flex-1 text-blue-600 font-bold">
+            <span class="text-xl">🏠</span><span class="text-[10px]">Խանութ</span>
+        </button>
+        <button id="nav-history" onclick="showSection('history')" class="flex flex-col items-center flex-1 text-gray-400">
+            <span class="text-xl">📜</span><span class="text-[10px]">Պատմություն</span>
         </button>
     </div>
-</div>
+
+    <!-- Զամբյուղի Կոճակ -->
+    <button id="cart-btn" onclick="showCart()" class="hidden fixed bottom-20 right-4 bg-orange-500 text-white p-4 rounded-full shadow-2xl z-50 animate-bounce">
+        🛒 <span id="cart-count" class="bg-white text-orange-500 rounded-full px-2 py-0.5 text-xs font-black ml-1">0</span>
+    </button>
+
+    <!-- Ավելացման Մոդալ -->
+    <div id="modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl">
+            <h2 class="text-xl font-black mb-4">Ապրանքի տվյալներ</h2>
+            <input id="prod-name" type="text" placeholder="Ապրանքի անունը" class="w-full border p-4 rounded-2xl mb-3 outline-none focus:border-blue-500 bg-gray-50">
+            <input id="prod-price" type="number" placeholder="Գինը (֏)" class="w-full border p-4 rounded-2xl mb-3 outline-none focus:border-blue-500 bg-gray-50">
+            <input id="prod-img-file" type="file" accept="image/*" class="w-full mb-6 text-sm text-gray-500">
+            <div class="flex gap-2">
+                <button onclick="closeModal()" class="flex-1 py-4 font-bold text-gray-500 bg-gray-100 rounded-2xl">Չեղարկել</button>
+                <button onclick="addProduct()" class="flex-1 py-4 font-bold text-white bg-blue-600 rounded-2xl shadow-lg">Ավելացնել</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Զամբյուղի Մոդալ -->
+    <div id="cart-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-end justify-center p-0">
+        <div class="bg-white w-full max-w-lg rounded-t-[32px] p-6 animate-slide-up">
+            <h2 class="text-xl font-black mb-4 text-gray-800">Ձեր զամբյուղը</h2>
+            <div id="cart-items" class="space-y-3 max-h-64 overflow-y-auto mb-6"></div>
+            <div class="flex justify-between items-center mb-6 font-black text-lg">
+                <span>Ընդհանուր՝</span><span id="cart-total-price" class="text-blue-600">0 ֏</span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="closeCart()" class="flex-1 py-4 font-bold text-gray-500 bg-gray-100 rounded-2xl">Հետ</button>
+                <button onclick="checkout()" class="flex-[2] py-4 font-bold text-white bg-green-500 rounded-2xl shadow-lg">ՊԱՏՎԻՐԵԼ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Պատվերի մանրամասների պատուհան (Նոր) -->
+    <div id="order-details-modal" class="hidden fixed inset-0 z-[110] flex items-end justify-center p-0">
+        <div onclick="closeOrderDetails()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative bg-white w-full max-w-lg rounded-t-[32px] p-6 shadow-2xl animate-slide-up">
+            <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            <div id="order-details-content"></div>
+            <button onclick="closeOrderDetails()" class="w-full mt-6 bg-gray-100 text-gray-800 py-4 rounded-2xl font-black">ՓԱԿԵԼ</button>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
