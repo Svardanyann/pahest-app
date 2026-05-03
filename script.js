@@ -63,12 +63,36 @@ function deleteProduct(id) {
     }
 }
 
+// ԶԱՄԲՅՈՒՂՈՒՄ ՔԱՆԱԿԻ ՍՏՈՒԳՈՒՄ (ՈՒՂՂՎԱԾ ՏԱՐԲԵՐԱԿ)
 function addToCart(id) {
-    const p = products.find(x => x.id === id);
-    const qty = prompt(p.name + "\nՔանակը:", 1);
+    // Գտնում ենք ապրանքը կատալոգից
+    const p = products.find(x => Number(x.id) === Number(id));
+    if (!p) return;
+
+    const qtyInput = prompt(p.name + "\nՔանակը:", 1);
+    const qty = parseInt(qtyInput);
+
     if (qty && qty > 0) {
-        cart.push({ ...p, qty: parseInt(qty) });
+        // ՍՏՈՒԳՈՒՄ. Փնտրում ենք զամբյուղում այս ապրանքը ըստ ID-ի
+        // Օգտագործում ենք Number(), որպեսզի համոզվենք, որ երկուսն էլ թիվ են
+        const existingItemIndex = cart.findIndex(item => Number(item.id) === Number(id));
+        
+        if (existingItemIndex !== -1) {
+            // Եթե ապրանքը ԱՐԴԵՆ ԿԱ, ավելացնում ենք քանակը հենց այդ ինդեքսի վրա
+            cart[existingItemIndex].qty += qty;
+            console.log("Ապրանքի քանակը թարմացվեց");
+        } else {
+            // Եթե ՉԿԱ, նոր ենք ավելացնում
+            cart.push({ ...p, qty: qty });
+            console.log("Նոր ապրանք ավելացվեց զամբյուղ");
+        }
+        
         updateCartUI();
+        
+        // Եթե զամբյուղը բաց է, թարմացնում ենք տեսքը
+        if (!document.getElementById("cart-modal").classList.contains("hidden")) {
+            showCart();
+        }
     }
 }
 
