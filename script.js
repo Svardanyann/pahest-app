@@ -1,44 +1,41 @@
 let products = JSON.parse(localStorage.getItem("myProducts")) || [];
 let history = JSON.parse(localStorage.getItem("orderHistory")) || [];
 let cart = [];
+let selectedOrders = new Set(); // Ընտրված պատվերների համար
 
-// Էկրանների փոփոխություն
 function showSection(section) {
     document.getElementById("catalog-section").classList.toggle("hidden", section !== "catalog");
     document.getElementById("history-section").classList.toggle("hidden", section !== "history");
-    
     document.getElementById("nav-catalog").className = section === 'catalog' ? 'flex flex-col items-center flex-1 text-blue-600 font-bold' : 'flex flex-col items-center flex-1 text-gray-400';
     document.getElementById("nav-history").className = section === 'history' ? 'flex flex-col items-center flex-1 text-blue-600 font-bold' : 'flex flex-col items-center flex-1 text-gray-400';
-    
-    if (section === "history") renderHistory();
+    if (section === "history") {
+        selectedOrders.clear();
+        renderHistory();
+    }
 }
 
-function openModal() { document.getElementById("modal").classList.remove("hidden"); }
+// Ընդհանուր ֆունկցիաներ
 function closeModal() { document.getElementById("modal").classList.add("hidden"); }
 function closeCart() { document.getElementById("cart-modal").classList.add("hidden"); }
+function closeOrderDetails() { document.getElementById("order-details-modal").classList.add("hidden"); }
 
-// Ապրանքի ավելացում (նկարի սեղմումով)
+// ԱՊՐԱՆՔԻ ԱՎԵԼԱՑՈՒՄ
 async function addProduct() {
     const name = document.getElementById("prod-name").value;
     const price = document.getElementById("prod-price").value;
     const fileInput = document.getElementById("prod-img-file");
-
     if (!name || !price) return alert("Լրացրեք տվյալները");
-
-    const reader = new FileReader();
     const save = (imgData) => {
         products.push({ id: Date.now(), name, price: parseInt(price), img: imgData });
         localStorage.setItem("myProducts", JSON.stringify(products));
         renderCatalog();
         closeModal();
     };
-
     if (fileInput.files[0]) {
+        const reader = new FileReader();
         reader.onload = (e) => save(e.target.result);
         reader.readAsDataURL(fileInput.files[0]);
-    } else {
-        save("https://via.placeholder.com/150");
-    }
+    } else { save("https://via.placeholder.com/150"); }
 }
 
 function renderCatalog() {
@@ -62,6 +59,7 @@ function deleteProduct(id) {
     }
 }
 
+// ԶԱՄԲՅՈՒՂ
 function addToCart(id) {
     const p = products.find(x => x.id === id);
     const qty = prompt(p.name + "\nՔանակը:", 1);
@@ -83,7 +81,7 @@ function showCart() {
     container.innerHTML = cart.map(item => {
         total += item.price * item.qty;
         return `
-            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border">
+            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border mb-2">
                 <div class="flex items-center gap-2">
                     <img src="${item.img}" class="w-10 h-10 object-cover rounded">
                     <div class="flex flex-col text-[10px]">
@@ -97,94 +95,99 @@ function showCart() {
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
 
-// ՊԱՀՊԱՆՈՒՄ
 function checkout() {
-    const user = prompt("Պատվիրատուի անունը (օր.՝ Լիպարիտ):");
+    const user = prompt("Պատվիրատուի անունը:");
     if (!user) return;
-
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-    const newOrder = {
-        id: Date.now(),
-        customer: user,
-        items: [...cart],
-        total: total,
-        date: new Date().toLocaleString("hy-AM")
-    };
-
+    const newOrder = { id: Date.now(), customer: user, items: [...cart], total: total, date: new Date().toLocaleString("hy-AM") };
     history.unshift(newOrder);
     localStorage.setItem("orderHistory", JSON.stringify(history));
-    
-    cart = [];
-    updateCartUI();
-    closeCart();
-    showSection('history');
+    cart = []; updateCartUI(); closeCart(); showSection('history');
 }
 
-// ՊԱՏՄՈՒԹՅԱՆ ԱՐՏԱՊԱՏԿԵՐՈՒՄ (ԱԿՈՐԴԵՈՆՈՎ)
+// ՊԱՏՄՈՒԹՅԱՆ ԲԱԺԻՆ (ԸՆՏՐՈՎԻ ՋՆՋՈՒՄՈՎ)
 function renderHistory() {
     const list = document.getElementById("history-list");
+    const deleteBtn = document.getElementById("delete-selected-btn");
+    
     if (history.length === 0) {
-        list.innerHTML = '<div class="text-center py-20 text-gray-400 italic">Պատմությունը դատարկ է</div>';
+        list.innerHTML = '<div class="text-center py-20 text-gray-400">Պատմությունը դատարկ է</div>';
+        deleteBtn.classList.add("hidden");
         return;
     }
 
+    deleteBtn.classList.toggle("hidden", selectedOrders.size === 0);
+    deleteBtn.innerText = `Ջնջել ընտրվածները (${selectedOrders.size})`;
+
     list.innerHTML = history.map(h => `
-        <div class="bg-white rounded-2xl shadow-sm mb-3 border border-gray-100 overflow-hidden">
-            <!-- Անունի սեղմվող հատվածը -->
-            <div onclick="toggleOrder(${h.id})" class="p-4 flex justify-between items-center bg-white active:bg-gray-50">
+        <div class="flex items-center gap-3 mb-3">
+            <!-- Checkbox ընտրելու համար -->
+            <input type="checkbox" onchange="toggleSelect(${h.id})" ${selectedOrders.has(h.id) ? 'checked' : ''} class="w-5 h-5 rounded border-gray-300 text-blue-600">
+            
+            <div onclick="openOrderDetails(${h.id})" class="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center active:bg-gray-50 transition-colors">
                 <div class="flex flex-col">
                     <span class="font-black text-gray-800 text-base">${h.customer}</span>
                     <span class="text-[10px] text-gray-400">${h.date}</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="font-bold text-blue-600">${h.total.toLocaleString()} ֏</span>
-                    <span id="icon-${h.id}" class="text-gray-400 text-xs">▼</span>
-                </div>
-            </div>
-            
-            <!-- Թաքնված պատվերի դետալները -->
-            <div id="order-${h.id}" class="hidden p-4 bg-gray-50 border-t border-gray-100">
-                <div class="space-y-3">
-                    ${h.items.map(i => `
-                        <div class="flex justify-between items-center py-1">
-                            <div class="flex items-center gap-3">
-                                <img src="${i.img}" class="w-10 h-10 object-cover rounded-lg shadow-sm">
-                                <div class="flex flex-col">
-                                    <span class="text-xs font-bold text-gray-700">${i.name}</span>
-                                    <span class="text-[10px] text-gray-400">${i.price.toLocaleString()} ֏ x ${i.qty}</span>
-                                </div>
-                            </div>
-                            <span class="text-xs font-black text-gray-800">${(i.price * i.qty).toLocaleString()} ֏</span>
-                        </div>
-                    `).join("")}
+                    <span class="text-gray-300 text-xs">❯</span>
                 </div>
             </div>
         </div>
     `).join("");
 }
 
-// Դետալների բացում/փակում
-function toggleOrder(id) {
-    const detail = document.getElementById(`order-${id}`);
-    const icon = document.getElementById(`icon-${id}`);
-    
-    if (detail.classList.contains("hidden")) {
-        detail.classList.remove("hidden");
-        icon.innerText = "▲";
-        icon.classList.add("text-blue-600");
+function toggleSelect(id) {
+    if (selectedOrders.has(id)) {
+        selectedOrders.delete(id);
     } else {
-        detail.classList.add("hidden");
-        icon.innerText = "▼";
-        icon.classList.remove("text-blue-600");
+        selectedOrders.add(id);
+    }
+    renderHistory();
+}
+
+function deleteSelected() {
+    if (confirm(`Ջնջե՞լ ընտրված ${selectedOrders.size} պատվերները:`)) {
+        history = history.filter(h => !selectedOrders.has(h.id));
+        localStorage.setItem("orderHistory", JSON.stringify(history));
+        selectedOrders.clear();
+        renderHistory();
     }
 }
 
-function clearHistory() {
-    if (confirm("Մաքրե՞լ պատմությունը:")) {
-        history = [];
-        localStorage.setItem("orderHistory", JSON.stringify(history));
-        renderHistory();
-    }
+// ԱՌԱՆՁԻՆ ՊԱՏՈՒՀԱՆԻ ԲԱՑՈՒՄ (POPUP)
+function openOrderDetails(id) {
+    const order = history.find(h => h.id === id);
+    const modal = document.getElementById("order-details-modal");
+    const container = document.getElementById("order-details-content");
+    
+    container.innerHTML = `
+        <div class="mb-4">
+            <h2 class="text-xl font-black text-gray-800">${order.customer}</h2>
+            <p class="text-xs text-gray-400">${order.date}</p>
+        </div>
+        <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+            ${order.items.map(i => `
+                <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                    <div class="flex items-center gap-3">
+                        <img src="${i.img}" class="w-14 h-14 object-cover rounded-xl shadow-sm">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-gray-700">${i.name}</span>
+                            <span class="text-xs text-gray-500">${i.price.toLocaleString()} ֏ x ${i.qty}</span>
+                        </div>
+                    </div>
+                    <span class="text-sm font-black text-blue-600">${(i.price * i.qty).toLocaleString()} ֏</span>
+                </div>
+            `).join("")}
+        </div>
+        <div class="mt-6 pt-4 border-t-2 border-dashed border-gray-200 flex justify-between items-center">
+            <span class="text-lg font-bold text-gray-800">Ընդհանուր՝</span>
+            <span class="text-xl font-black text-green-600">${order.total.toLocaleString()} ֏</span>
+        </div>
+    `;
+    
+    modal.classList.remove("hidden");
 }
 
 renderCatalog();
