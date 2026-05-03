@@ -2,7 +2,7 @@ let products = JSON.parse(localStorage.getItem("myProducts")) || [];
 let history = JSON.parse(localStorage.getItem("orderHistory")) || [];
 let cart = [];
 let selectedOrders = new Set();
-let editingOrderId = null; // Հիշում ենք, թե որ պատվերն ենք խմբագրում
+let editingOrderId = null; 
 
 function showSection(section) {
     document.getElementById("catalog-section").classList.toggle("hidden", section !== "catalog");
@@ -20,34 +20,26 @@ function showSection(section) {
 function closeModal() { document.getElementById("modal").classList.add("hidden"); }
 function closeCart() { 
     document.getElementById("cart-modal").classList.add("hidden"); 
-    editingOrderId = null; // Եթե փակում ենք զամբյուղը, մոռանում ենք խմբագրման մասին
+    // ՈՒՇԱԴՐՈՒԹՅՈՒՆ. editingOrderId-ն այստեղ չենք ջնջում, որ եթե պատահական փակի, խմբագրումը չկորչի
 }
 function closeOrderDetails() { document.getElementById("order-details-modal").classList.add("hidden"); }
 
-// ԱՊՐԱՆՔԻ ԱՎԵԼԱՑՈՒՄ
 async function addProduct() {
     const name = document.getElementById("prod-name").value;
     const price = document.getElementById("prod-price").value;
     const fileInput = document.getElementById("prod-img-file");
-
     if (!name || !price) return alert("Լրացրեք տվյալները");
-
     const save = (imgData) => {
         products.push({ id: Date.now(), name, price: parseInt(price), img: imgData });
         localStorage.setItem("myProducts", JSON.stringify(products));
         renderCatalog();
         closeModal();
-        document.getElementById("prod-name").value = "";
-        document.getElementById("prod-price").value = "";
     };
-
     if (fileInput.files[0]) {
         const reader = new FileReader();
         reader.onload = (e) => save(e.target.result);
         reader.readAsDataURL(fileInput.files[0]);
-    } else {
-        save("https://via.placeholder.com/150");
-    }
+    } else { save("https://via.placeholder.com/150"); }
 }
 
 function renderCatalog() {
@@ -71,7 +63,6 @@ function deleteProduct(id) {
     }
 }
 
-// ԶԱՄԲՅՈՒՂԻ ՏՐԱՄԱԲԱՆՈՒԹՅՈՒՆ
 function addToCart(id) {
     const p = products.find(x => x.id === id);
     const qty = prompt(p.name + "\nՔանակը:", 1);
@@ -89,6 +80,15 @@ function updateCartUI() {
 function showCart() {
     document.getElementById("cart-modal").classList.remove("hidden");
     const container = document.getElementById("cart-items");
+    const checkoutBtn = document.getElementById("checkout-btn-text"); // Կոճակի տեքստը
+    
+    // Փոխում ենք կոճակի տեքստը, եթե խմբագրում ենք
+    if (editingOrderId) {
+        checkoutBtn.innerText = "ՊԱՀՊԱՆԵԼ ՓՈՓՈԽՈՒԹՅՈՒՆՆԵՐԸ";
+    } else {
+        checkoutBtn.innerText = "ՊԱՏՎԻՐԵԼ";
+    }
+
     let total = 0;
     container.innerHTML = cart.map((item, index) => {
         total += item.price * item.qty;
@@ -112,59 +112,67 @@ function showCart() {
 
 function removeFromCart(index) {
     cart.splice(index, 1);
-    showCart();
-    updateCartUI();
+    if (cart.length === 0) {
+        closeCart();
+        updateCartUI();
+    } else {
+        showCart();
+        updateCartUI();
+    }
 }
 
-// ՊԱՀՊԱՆՈՒՄ (ԽՄԲԱԳՐՄԱՆ ՀՆԱՐԱՎՈՐՈՒԹՅԱՄԲ)
+// ՀԻՄՆԱԿԱՆ ՖՈՒՆԿՑԻԱՆ ՈՐԸ ՈՒՂՂՎԵԼ Է
 function checkout() {
     if (cart.length === 0) return;
-    
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
 
     if (editingOrderId) {
-        // Եթե խմբագրում ենք հին պատվերը
+        // Գտնում ենք հին պատվերը
         const index = history.findIndex(h => h.id === editingOrderId);
         if (index !== -1) {
             history[index].items = [...cart];
             history[index].total = total;
-            history[index].date = new Date().toLocaleString("hy-AM") + " (խմբագրված)";
-            alert("Պատվերը թարմացվեց:");
+            // Պահպանում ենք նույն անունը, ուղղակի թարմացնում ենք ամսաթիվը
+            history[index].date = new Date().toLocaleString("hy-AM") + " (փոփոխված)";
+            
+            localStorage.setItem("orderHistory", JSON.stringify(history));
+            alert("Փոփոխությունները պահպանվեցին");
+            
+            // Մաքրում ենք ամեն ինչ
+            cart = [];
+            editingOrderId = null;
+            updateCartUI();
+            closeCart();
+            showSection('history');
         }
     } else {
-        // Եթե նոր պատվեր է
+        // Նոր պատվեր
         const user = prompt("Պատվիրատուի անունը:");
         if (!user) return;
         const newOrder = { id: Date.now(), customer: user, items: [...cart], total: total, date: new Date().toLocaleString("hy-AM") };
         history.unshift(newOrder);
+        localStorage.setItem("orderHistory", JSON.stringify(history));
+        cart = [];
+        updateCartUI();
+        closeCart();
+        showSection('history');
     }
-
-    localStorage.setItem("orderHistory", JSON.stringify(history));
-    cart = [];
-    editingOrderId = null;
-    updateCartUI();
-    closeCart();
-    showSection('history');
 }
 
-// ՊԱՏՄՈՒԹՅԱՆ ՑՈՒՑԱԴՐՈՒՄ
 function renderHistory() {
     const list = document.getElementById("history-list");
     const deleteBtn = document.getElementById("delete-selected-btn");
-    
     if (history.length === 0) {
         list.innerHTML = '<div class="text-center py-20 text-gray-400 italic">Պատմությունը դատարկ է</div>';
         deleteBtn.classList.add("hidden");
         return;
     }
-
     deleteBtn.classList.toggle("hidden", selectedOrders.size === 0);
     deleteBtn.innerText = `Ջնջել ընտրվածները (${selectedOrders.size})`;
-
     list.innerHTML = history.map(h => `
         <div class="flex items-center gap-3 mb-2">
             <input type="checkbox" onchange="toggleSelect(${h.id})" ${selectedOrders.has(h.id) ? 'checked' : ''} class="w-5 h-5 rounded-lg border-gray-300">
-            <div onclick="openOrderDetails(${h.id})" class="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-50 flex justify-between items-center active:scale-[0.98] transition-transform">
+            <div onclick="openOrderDetails(${h.id})" class="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-50 flex justify-between items-center active:scale-[0.98]">
                 <div class="flex flex-col">
                     <span class="font-black text-gray-800">${h.customer}</span>
                     <span class="text-[10px] text-gray-400">${h.date}</span>
@@ -190,19 +198,16 @@ function deleteSelected() {
     }
 }
 
-// ՊԱՏՎԵՐԻ ՄԱՆՐԱՄԱՍՆԵՐ ԵՎ ԽՄԲԱԳՐՈՒՄ
 function openOrderDetails(id) {
     const order = history.find(h => h.id === id);
     const container = document.getElementById("order-details-content");
-    
     container.innerHTML = `
         <div class="mb-6 flex justify-between items-start">
             <div>
                 <h2 class="text-2xl font-black text-gray-800">${order.customer}</h2>
                 <p class="text-xs text-gray-400">${order.date}</p>
             </div>
-            <!-- ԽՄԲԱԳՐԵԼՈՒ ԿՈՃԱԿ -->
-            <button onclick="editOrder(${order.id})" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold">Խմբագրել</button>
+            <button onclick="editOrder(${order.id})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Խմբագրել</button>
         </div>
         <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
             ${order.items.map(i => `
@@ -228,15 +233,12 @@ function openOrderDetails(id) {
 
 function editOrder(id) {
     const order = history.find(h => h.id === id);
-    if (!confirm(`Խմբագրե՞լ ${order.customer}-ի պատվերը։ Ապրանքները կտեղափոխվեն զամբյուղ։`)) return;
-
-    cart = [...order.items]; // Ապրանքները լցնում ենք զամբյուղ
-    editingOrderId = id; // Նշում ենք, որ սա խմբագրվող պատվեր է
-    
+    cart = [...order.items]; 
+    editingOrderId = id; 
     updateCartUI();
     closeOrderDetails();
-    showSection('catalog'); // Գնում ենք խանութ, որ նոր բան ավելացնենք եթե պետք է
-    showCart(); // Բացում ենք զամբյուղը, որ տեսնենք ինչ կա
+    showSection('catalog');
+    showCart();
 }
 
 renderCatalog();
