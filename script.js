@@ -12,7 +12,7 @@ function showSection(section) {
     
     document.getElementById("catalog-section").classList.toggle("hidden", section !== "catalog");
     document.getElementById("history-section").classList.toggle("hidden", section !== "history");
-    
+     
     if (section === 'history') {
         headerTitle.innerText = "ՊԱՏՎԵՐՆԵՐ";
         addBtn.classList.add("hidden"); // Թաքցնել (+) կոճակը Պատմության մեջ
