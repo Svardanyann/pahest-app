@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Մարի - Կատալոգ</title>
+    <title>Պատվերների համակարգ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -13,7 +13,6 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
 
-    <!-- HEADER -->
     <header class="bg-white border-b sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
         <h1 class="text-xl font-black text-blue-600 italic">ՄԱՐԻ</h1>
         <button id="cart-btn" onclick="showCart()" class="relative p-2 bg-blue-50 rounded-full hidden">
@@ -21,29 +20,21 @@
         </button>
     </header>
 
-    <!-- CATALOG SECTION -->
     <main id="catalog-section" class="p-4 pb-32">
-        <div id="product-list" class="grid grid-cols-2 gap-3">
-            <!-- Ապրանքները կհայտնվեն այստեղ -->
-        </div>
+        <div id="product-list" class="grid grid-cols-2 gap-3"></div>
     </main>
 
-    <!-- HISTORY SECTION -->
     <section id="history-section" class="hidden p-4 pb-32">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-black">Պատմություն</h2>
             <div class="flex gap-2">
-                <button id="select-all-btn" onclick="toggleSelectAll()" class="text-xs bg-gray-200 px-3 py-1.5 rounded-lg font-bold">Ընտրել բոլորը</button>
+                <button onclick="toggleSelectAll()" class="text-xs bg-gray-200 px-3 py-1.5 rounded-lg font-bold">Ընտրել բոլորը</button>
                 <button id="delete-selected-btn" onclick="deleteSelected()" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-bold hidden italic">Ջնջել</button>
             </div>
         </div>
-        <div id="history-list">
-            <!-- Պատվերները կհայտնվեն այստեղ -->
-        </div>
-        <!-- ՈՒՇԱԴՐՈՒԹՅՈՒՆ: ԱՅՍՏԵՂԻՑ ՊԱՏՎԻՐԵԼ ԿՈՃԱԿԸ ՀԱՆՎԱԾ Է -->
+        <div id="history-list"></div>
     </section>
 
-    <!-- BOTTOM NAVIGATION -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex py-2 px-6 shadow-lg z-50">
         <button id="nav-catalog" onclick="showSection('catalog')" class="flex flex-col items-center flex-1 text-blue-600 font-bold">
             <span class="text-xl">📦</span>
@@ -55,32 +46,29 @@
         </button>
     </nav>
 
-    <!-- CART MODAL -->
+    <!-- ԶԱՄԲՅՈՒՂԻ ՊԱՏՈՒՀԱՆ -->
     <div id="cart-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-end">
         <div class="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-black">Իմ Զամբյուղը</h2>
+                <h2 class="text-xl font-black">Զամբյուղ</h2>
                 <button onclick="closeCart()" class="text-2xl font-light">✕</button>
             </div>
             <div id="cart-items" class="mb-6"></div>
             <div class="flex justify-between items-center mb-6 pt-4 border-t">
-                <span class="font-bold text-gray-500">Ընդհանուր գումար</span>
+                <span class="font-bold text-gray-500">Ընդհանուր</span>
                 <span id="cart-total-price" class="text-xl font-black text-blue-600">0 ֏</span>
             </div>
-            <!-- ՄԻԱՅՆ ԱՅՍՏԵՂ Է ՄՆԱՑԵԼ ՊԱՏՎԻՐԵԼԸ -->
-            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg active:scale-95 transition-transform">
+            <!-- ՎԵՐԱԴԱՐՁՐԱԾ ՊԱՏՎԻՐԵԼ ԿՈՃԱԿԸ -->
+            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg">
                 <span id="checkout-btn-text">ՊԱՏՎԻՐԵԼ</span>
             </button>
         </div>
     </div>
 
-    <!-- ORDER DETAILS MODAL (Պատմության մեջ պատվերը բացելու համար) -->
     <div id="order-details-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 relative">
             <button onclick="closeOrderDetails()" class="absolute top-4 right-4 text-xl">✕</button>
-            <div id="order-details-content">
-                <!-- Պատվերի մանրամասները նկարներով կհայտնվեն այստեղ -->
-            </div>
+            <div id="order-details-content"></div>
         </div>
     </div>
 
