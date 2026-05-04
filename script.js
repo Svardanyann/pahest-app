@@ -4,7 +4,7 @@ let cart = [];
 let selectedOrders = new Set();
 let editingOrderId = null;
 
-// 1. ՍԵԿՑԻԱՆԵՐԻ ՑՈՒՑԱԴՐՈՒՄ
+// 1. ՍԵԿՑԻԱՆԵՐ
 function showSection(section) {
     document.getElementById("catalog-section").classList.toggle("hidden", section !== "catalog");
     document.getElementById("history-section").classList.toggle("hidden", section !== "history");
@@ -21,7 +21,7 @@ function showSection(section) {
     }
 }
 
-// 2. ԶԱՄԲՅՈՒՂԻ ԿԱՌԱՎԱՐՈՒՄ ԵՎ ՔԱՆԱԿԻ ՄՈՒՏՔԱԳՐՈՒՄ
+// 2. ԶԱՄԲՅՈՒՂ ԵՎ ՔԱՆԱԿ
 function updateCartItem(id, delta) {
     const productId = String(id).trim();
     let item = cart.find(i => String(i.id).trim() === productId);
@@ -36,20 +36,18 @@ function updateCartItem(id, delta) {
     refreshUI();
 }
 
-// ՆՈՐ: Քանակը ձեռքով գրելու ֆունկցիա
 function setManualQty(id) {
     const val = prompt("Մուտքագրեք քանակը:");
     if (val === null) return;
     const qty = parseInt(val);
-    
     const productId = String(id).trim();
+
     if (isNaN(qty) || qty <= 0) {
         cart = cart.filter(i => String(i.id).trim() !== productId);
     } else {
         let item = cart.find(i => String(i.id).trim() === productId);
-        if (item) {
-            item.qty = qty;
-        } else {
+        if (item) item.qty = qty;
+        else {
             const p = products.find(x => String(x.id).trim() === productId);
             if (p) cart.push({ ...p, qty: qty });
         }
@@ -67,10 +65,11 @@ function updateCartUI() {
     const count = cart.reduce((sum, item) => sum + item.qty, 0);
     document.getElementById("cart-count").innerText = count;
     const cartBtn = document.getElementById("cart-btn");
-    cartBtn.classList.toggle("hidden", editingOrderId || cart.length === 0);
+    // Թաքցնում ենք զամբյուղի կոճակը, եթե խմբագրում ենք կամ զամբյուղը դատարկ է
+    cartBtn.classList.toggle("hidden", !!editingOrderId || cart.length === 0);
 }
 
-// 3. ԿԱՏԱԼՈԳԻ ՌԵՆԴԵՐ (ՄԻԱՅՆ +- ԵՎ ՁԵՌՔՈՎ ՄՈՒՏՔ)
+// 3. ԿԱՏԱԼՈԳ
 function renderCatalog() {
     const list = document.getElementById("product-list");
     if (!list) return;
@@ -93,12 +92,11 @@ function renderCatalog() {
                     </div>
                     <button onclick="updateCartItem('${p.id}', 1)" class="w-10 h-10 bg-gray-100 text-gray-800 rounded-xl font-bold active:bg-gray-200">+</button>
                 </div>
-            </div>
-        `;
+            </div>`;
     }).join("");
 }
 
-// 4. ԶԱՄԲՅՈՒՂԻ ԵՎ ՊԱՏՎԵՐԻ ՏՐԱՄԱԲԱՆՈՒԹՅՈՒՆ
+// 4. ԶԱՄԲՅՈՒՂԻ ՄՈԴԱԼ
 function showCart() {
     document.getElementById("cart-modal").classList.remove("hidden");
     const container = document.getElementById("cart-items");
@@ -117,12 +115,13 @@ function showCart() {
                         <span>${item.price.toLocaleString()} x ${item.qty}</span>
                     </div>
                 </div>
-                <button onclick="updateCartItem('${item.id}', -${item.qty})" class="text-red-500 text-xs">✕</button>
+                <button onclick="updateCartItem('${item.id}', -${item.qty})" class="text-red-500 text-xs font-bold">✕</button>
             </div>`;
     }).join("");
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
 
+// 5. ՊԱՏՎԵՐԻ ԱՎԱՐՏ
 function checkout() {
     if (cart.length === 0) return;
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
@@ -130,7 +129,7 @@ function checkout() {
     if (editingOrderId) {
         const idx = history.findIndex(h => String(h.id) === String(editingOrderId));
         if (idx !== -1) {
-            history[idx].items = [...cart];
+            history[idx].items = JSON.parse(JSON.stringify(cart));
             history[idx].total = total;
             history[idx].date = new Date().toLocaleString("hy-AM") + " (խմբ.)";
             localStorage.setItem("orderHistory", JSON.stringify(history));
@@ -145,22 +144,30 @@ function checkout() {
     }
 }
 
-// 5. ՊԱՏՄՈՒԹՅԱՆ ՌԵՆԴԵՐ (ԱՌԱՆՑ ՊԱՏՎԻՐԵԼՈՒ ԿՈՃԱԿԻ)
+// 6. ՊԱՏՄՈՒԹՅՈՒՆ
 function renderHistory() {
     const list = document.getElementById("history-list");
     const deleteBtn = document.getElementById("delete-selected-btn");
+    const selectAllBtn = document.getElementById("select-all-btn");
+
     if (history.length === 0) {
         list.innerHTML = '<div class="text-center py-20 text-gray-400 italic">Պատմությունը դատարկ է</div>';
         if (deleteBtn) deleteBtn.classList.add("hidden");
         return;
     }
+
     if (deleteBtn) {
         deleteBtn.classList.toggle("hidden", selectedOrders.size === 0);
         deleteBtn.innerText = `Ջնջել (${selectedOrders.size})`;
     }
+    
+    if (selectAllBtn) {
+        selectAllBtn.innerText = selectedOrders.size === history.length ? "Հանել նշումները" : "Ընտրել բոլորը";
+    }
+
     list.innerHTML = history.map(h => `
         <div class="flex items-center gap-3 mb-2">
-            <input type="checkbox" onchange="toggleSelect('${h.id}')" ${selectedOrders.has(String(h.id)) ? 'checked' : ''} class="w-5 h-5">
+            <input type="checkbox" onchange="toggleSelect('${h.id}')" ${selectedOrders.has(String(h.id)) ? 'checked' : ''} class="w-5 h-5 rounded border-gray-300">
             <div onclick="openOrderDetails('${h.id}')" class="flex-1 bg-white p-4 rounded-2xl shadow-sm border flex justify-between items-center active:scale-95 transition-transform">
                 <div class="flex flex-col">
                     <span class="font-black text-gray-800">${h.customer}</span>
@@ -168,30 +175,57 @@ function renderHistory() {
                 </div>
                 <span class="font-bold text-blue-600">${h.total.toLocaleString()} ֏</span>
             </div>
-        </div>
-    `).join("");
+        </div>`).join("");
 }
 
-// ՕԳՆՈՂ ՖՈՒՆԿՑԻԱՆԵՐ
+// 7. ԸՆՏՐԵԼՈՒ ՖՈՒՆԿՑԻԱՆԵՐ
 function toggleSelect(id) {
     const sId = String(id);
-    if (selectedOrders.has(sId)) selectedOrders.delete(sId); else selectedOrders.add(sId);
+    if (selectedOrders.has(sId)) selectedOrders.delete(sId);
+    else selectedOrders.add(sId);
     renderHistory();
 }
 
+function toggleSelectAll() {
+    if (selectedOrders.size === history.length) {
+        selectedOrders.clear();
+    } else {
+        history.forEach(h => selectedOrders.add(String(h.id)));
+    }
+    renderHistory();
+}
+
+function deleteSelected() {
+    if (confirm(`Ջնջե՞լ ընտրված ${selectedOrders.size} պատվերները`)) {
+        history = history.filter(h => !selectedOrders.has(String(h.id)));
+        localStorage.setItem("orderHistory", JSON.stringify(history));
+        selectedOrders.clear();
+        renderHistory();
+    }
+}
+
+// 8. ՄԱՆՐԱՄԱՍՆԵՐ (ՈՒՂՂՎԱԾ ՆԿԱՐՆԵՐՈՎ)
 function openOrderDetails(id) {
     const order = history.find(h => String(h.id) === String(id));
     if (!order) return;
+    
     document.getElementById("order-details-content").innerHTML = `
         <div class="mb-6 flex justify-between items-center">
             <h2 class="text-xl font-black">${order.customer}</h2>
             <button onclick="editOrder('${order.id}')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Խմբագրել</button>
         </div>
         <div class="space-y-3">
-            ${order.items.map(i => `<div class="flex justify-between text-sm border-b pb-2"><span>${i.name} (x${i.qty})</span><b>${(i.price * i.qty).toLocaleString()} ֏</b></div>`).join("")}
+            ${order.items.map(i => `
+                <div class="flex justify-between items-center border-b pb-2">
+                    <div class="flex items-center gap-2">
+                        <img src="${i.img}" class="w-10 h-10 object-cover rounded-lg">
+                        <span class="text-sm font-bold">${i.name} (x${i.qty})</span>
+                    </div>
+                    <b class="text-sm">${(i.price * i.qty).toLocaleString()} ֏</b>
+                </div>`).join("")}
         </div>
-        <div class="mt-4 text-right font-black text-blue-600">Ընդհանուր: ${order.total.toLocaleString()} ֏</div>
-    `;
+        <div class="mt-4 text-right font-black text-blue-600 text-lg">Ընդհանուր: ${order.total.toLocaleString()} ֏</div>`;
+    
     document.getElementById("order-details-modal").classList.remove("hidden");
 }
 
@@ -205,8 +239,9 @@ function editOrder(id) {
     showSection('catalog');
 }
 
-function prepareEditProduct(id) { console.log("Edit product:", id); }
+// 9. ՄՈԴԱԼՆԵՐԻ ՓԱԿՈՒՄ
 function closeCart() { document.getElementById("cart-modal").classList.add("hidden"); }
 function closeOrderDetails() { document.getElementById("order-details-modal").classList.add("hidden"); }
+function prepareEditProduct(id) { console.log("Edit product:", id); }
 
 renderCatalog();
