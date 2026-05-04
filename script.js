@@ -174,32 +174,58 @@ function showCart() {
 }
 
 function checkout() {
-    if (cart.length === 0) return;
-    const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-    
-    if (editingOrderId) {
-        const idx = history.findIndex(h => String(h.id) === String(editingOrderId));
-        if (idx !== -1) {
-            history[idx].items = [...cart]; 
-            history[idx].total = total; 
-            if (!history[idx].date.includes("(խմբ.)")) history[idx].date += " (խմբ.)";
+    try {
+        if (cart.length === 0) {
+            closeCart();
+            return;
         }
-        editingOrderId = null;
-    } else {
-        const user = prompt("Պատվիրատու:");
-        if (!user) return;
-        history.unshift({ id: Date.now(), customer: user, items: [...cart], total, date: new Date().toLocaleString("hy-AM") });
-    }
-    
-    localStorage.setItem("orderHistory", JSON.stringify(history));
-    
-    // ՀԵՐԹԱԿԱՆՈՒԹՅՈՒՆԸ ՓՈԽԵՑԻՆՔ
-    cart = []; 
-    closeCart(); // 1. Փակել զամբյուղը
-    refreshUI(); // 2. Թարմացնել UI-ը
-    showSection('history'); // 3. Գնալ պատմություն
-}
 
+        const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        
+        if (editingOrderId) {
+            // Գտնում ենք հին պատվերը և թարմացնում
+            const idx = history.findIndex(h => String(h.id) === String(editingOrderId));
+            if (idx !== -1) {
+                history[idx].items = JSON.parse(JSON.stringify(cart)); 
+                history[idx].total = total; 
+                if (!history[idx].date.includes("(խմբ.)")) {
+                    history[idx].date += " (խմբ.)";
+                }
+            }
+            editingOrderId = null; // Մաքրում ենք խմբագրման ID-ն
+        } else {
+            // Նոր պատվեր
+            const user = prompt("Պատվիրատուի անունը:");
+            if (!user) return; // Եթե անուն չգրվի, դուրս կգա առանց ջնջելու զամբյուղը
+
+            const newOrder = {
+                id: Date.now(),
+                customer: user,
+                items: JSON.parse(JSON.stringify(cart)),
+                total: total,
+                date: new Date().toLocaleString("hy-AM")
+            };
+            history.unshift(newOrder);
+        }
+        
+        // Պահպանում ենք LocalStorage-ում
+        localStorage.setItem("orderHistory", JSON.stringify(history));
+        
+        // Մաքրում ենք զամբյուղը
+        cart = []; 
+        
+        // Փակում ենք պատուհանը (Առաջնահերթ)
+        closeCart();
+        
+        // Թարմացնում ենք էկրանը
+        refreshUI(); 
+        showSection('history');
+        
+    } catch (error) {
+        console.error("Սխալ պատվերը պահպանելիս:", error);
+        alert("Տեղի է ունեցել սխալ։ Փորձեք նորից։");
+    }
+}
 function renderHistory() {
     const list = document.getElementById("history-list");
     list.innerHTML = history.map(h => `
