@@ -7,7 +7,7 @@ let currentEditingProductId = null;
 
 // 1. Բաժինների փոփոխություն
 function showSection(section) {
-    const headerTitle = document.querySelector('header h1'); // Գտնում ենք վերնագիրը
+    const headerTitle = document.getElementById("main-title");// Գտնում ենք վերնագիրը
     
     document.getElementById("catalog-section").classList.toggle("hidden", section !== "catalog");
     document.getElementById("history-section").classList.toggle("hidden", section !== "history");
