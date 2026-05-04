@@ -64,9 +64,9 @@ function renderCatalog() {
                 <div class="font-bold text-[11px] px-1 h-8 overflow-hidden">${p.name}</div>
                 <div class="text-blue-600 font-bold text-sm px-1 mb-2">${p.price.toLocaleString()} ֏</div>
                 <div class="flex items-center gap-1">
-                    <button onclick="updateCartItem('${p.id}', -1)" class="w-8 h-8 bg-gray-100 rounded-lg">-</button>
-                    <div onclick="setManualQty('${p.id}')" class="flex-1 text-center font-bold text-xs cursor-pointer">${qty}</div>
-                    <button onclick="updateCartItem('${p.id}', 1)" class="w-8 h-8 bg-gray-100 rounded-lg">+</button>
+                    <button onclick="updateCartItem('${p.id}', -1)" class="w-8 h-8 bg-gray-100 rounded-lg font-bold text-lg">-</button>
+                    <div onclick="setManualQty('${p.id}')" class="flex-1 text-center font-bold text-xs cursor-pointer bg-blue-50 py-2 rounded-lg text-blue-700">${qty} հատ</div>
+                    <button onclick="updateCartItem('${p.id}', 1)" class="w-8 h-8 bg-gray-100 rounded-lg font-bold text-lg">+</button>
                 </div>
             </div>`;
     }).join("");
@@ -75,37 +75,54 @@ function renderCatalog() {
 function showCart() {
     document.getElementById("cart-modal").classList.remove("hidden");
     const container = document.getElementById("cart-items");
+    const btnText = document.getElementById("checkout-btn-text");
+    btnText.innerText = editingOrderId ? "ՊԱՀՊԱՆԵԼ ՓՈՓՈԽՈՒԹՅՈՒՆՆԵՐԸ" : "ՊԱՏՎԻՐԵԼ";
+
     let total = 0;
     container.innerHTML = cart.map(item => {
         total += item.price * item.qty;
-        return `<div class="flex justify-between border-b py-2 text-[10px]"><span>${item.name} x${item.qty}</span><b>${(item.price * item.qty).toLocaleString()} ֏</b></div>`;
+        return `
+            <div class="flex justify-between items-center border-b py-2">
+                <div class="flex items-center gap-2">
+                    <img src="${item.img}" class="w-8 h-8 object-cover rounded">
+                    <span class="text-xs font-bold">${item.name} (x${item.qty})</span>
+                </div>
+                <b class="text-xs text-blue-600">${(item.price * item.qty).toLocaleString()} ֏</b>
+            </div>`;
     }).join("");
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
 
 function checkout() {
     if (cart.length === 0) return;
-    const user = prompt("Պատվիրատուի անունը:");
-    if (!user) return;
-    history.unshift({ 
-        id: Date.now(), 
-        customer: user, 
-        items: [...cart], 
-        total: cart.reduce((s, i) => s + (i.price * i.qty), 0), 
-        date: new Date().toLocaleString("hy-AM") 
-    });
-    localStorage.setItem("orderHistory", JSON.stringify(history));
-    cart = []; refreshUI(); closeCart(); showSection('history');
+    const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+
+    if (editingOrderId) {
+        const idx = history.findIndex(h => String(h.id) === String(editingOrderId));
+        if (idx !== -1) {
+            history[idx].items = JSON.parse(JSON.stringify(cart));
+            history[idx].total = total;
+            history[idx].date = new Date().toLocaleString("hy-AM") + " (խմբ.)";
+            localStorage.setItem("orderHistory", JSON.stringify(history));
+            editingOrderId = null; cart = []; refreshUI(); closeCart(); showSection('history');
+        }
+    } else {
+        const user = prompt("Պատվիրատուի անունը:");
+        if (!user) return;
+        history.unshift({ id: Date.now(), customer: user, items: [...cart], total, date: new Date().toLocaleString("hy-AM") });
+        localStorage.setItem("orderHistory", JSON.stringify(history));
+        cart = []; refreshUI(); closeCart(); showSection('history');
+    }
 }
 
 function renderHistory() {
     const list = document.getElementById("history-list");
     list.innerHTML = history.map(h => `
         <div class="flex items-center gap-2 mb-2">
-            <input type="checkbox" onchange="toggleSelect('${h.id}')" ${selectedOrders.has(String(h.id)) ? 'checked' : ''} class="w-5 h-5">
-            <div class="flex-1 bg-white p-4 rounded-xl border flex justify-between items-center" onclick="openOrderDetails('${h.id}')">
-                <div><div class="font-bold">${h.customer}</div><div class="text-[10px] text-gray-400">${h.date}</div></div>
-                <div class="font-bold text-blue-600">${h.total.toLocaleString()} ֏</div>
+            <input type="checkbox" onchange="toggleSelect('${h.id}')" ${selectedOrders.has(String(h.id)) ? 'checked' : ''} class="w-5 h-5 rounded border-gray-300">
+            <div class="flex-1 bg-white p-4 rounded-xl border flex justify-between items-center active:scale-95 transition-transform" onclick="openOrderDetails('${h.id}')">
+                <div><div class="font-bold text-sm">${h.customer}</div><div class="text-[10px] text-gray-400">${h.date}</div></div>
+                <div class="font-bold text-blue-600 text-sm">${h.total.toLocaleString()} ֏</div>
             </div>
         </div>`).join("");
     const delBtn = document.getElementById("delete-selected-btn");
@@ -137,10 +154,28 @@ function deleteSelected() {
 function openOrderDetails(id) {
     const order = history.find(h => String(h.id) === String(id));
     if (!order) return;
-    document.getElementById("order-details-content").innerHTML = `<h2 class="font-black mb-4">${order.customer}</h2>` + 
-        order.items.map(i => `<div class="flex gap-2 mb-2 items-center"><img src="${i.img}" class="w-10 h-10 object-cover rounded"><span>${i.name} (x${i.qty})</span></div>`).join("") +
-        `<div class="mt-4 font-bold text-blue-600">Ընդհանուր: ${order.total.toLocaleString()} ֏</div>`;
+    document.getElementById("order-details-content").innerHTML = `
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="font-black text-lg">${order.customer}</h2>
+            <button onclick="editOrder('${order.id}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">ԽՄԲԱԳՐԵԼ</button>
+        </div>` + 
+        order.items.map(i => `
+            <div class="flex gap-2 mb-2 items-center border-b pb-2">
+                <img src="${i.img}" class="w-10 h-10 object-cover rounded shadow-sm">
+                <div class="flex flex-col"><span class="text-xs font-bold">${i.name}</span><span class="text-[10px] text-gray-500">${i.qty} հատ</span></div>
+            </div>`).join("") +
+        `<div class="mt-4 font-black text-blue-600 text-right">Ընդհանուր: ${order.total.toLocaleString()} ֏</div>`;
     document.getElementById("order-details-modal").classList.remove("hidden");
+}
+
+function editOrder(id) {
+    const order = history.find(h => String(h.id) === String(id));
+    if (!order) return;
+    cart = JSON.parse(JSON.stringify(order.items));
+    editingOrderId = id;
+    closeOrderDetails();
+    refreshUI();
+    showSection('catalog');
 }
 
 function closeCart() { document.getElementById("cart-modal").classList.add("hidden"); }
