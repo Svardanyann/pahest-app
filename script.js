@@ -50,6 +50,7 @@ function refreshUI() {
     document.getElementById("cart-btn").classList.toggle("hidden", cart.length === 0 && !editingOrderId);
     renderCatalog();
     if (!document.getElementById("cart-modal").classList.contains("hidden")) showCart();
+    lucide.createIcons(); // Թարմացնել icon-ները
 }
 
 function renderCatalog() {
@@ -60,34 +61,38 @@ function renderCatalog() {
         const qty = cartItem ? cartItem.qty : 0;
         return `
             <div class="bg-white p-2 rounded-2xl shadow-sm border relative">
-                <img src="${p.img}" class="w-full h-32 object-cover rounded-xl mb-2">
+                <div class="relative group">
+                    <img src="${p.img}" class="w-full h-32 object-cover rounded-xl mb-2">
+                    <!-- Մատիտ նկարի վրա -->
+                    <div class="absolute top-1 right-1 bg-white/80 p-1.5 rounded-lg shadow-sm">
+                        <i data-lucide="pencil" class="w-3 h-3 text-blue-600"></i>
+                    </div>
+                </div>
                 <div class="font-bold text-[11px] px-1 h-8 overflow-hidden">${p.name}</div>
                 <div class="text-blue-600 font-bold text-sm px-1 mb-2">${p.price.toLocaleString()} ֏</div>
                 <div class="flex items-center gap-1">
-                    <button onclick="updateCartItem('${p.id}', -1)" class="w-8 h-8 bg-gray-100 rounded-lg font-bold text-lg">-</button>
+                    <button onclick="updateCartItem('${p.id}', -1)" class="w-8 h-8 bg-gray-100 rounded-lg font-bold">-</button>
                     <div onclick="setManualQty('${p.id}')" class="flex-1 text-center font-bold text-xs cursor-pointer bg-blue-50 py-2 rounded-lg text-blue-700">${qty} հատ</div>
-                    <button onclick="updateCartItem('${p.id}', 1)" class="w-8 h-8 bg-gray-100 rounded-lg font-bold text-lg">+</button>
+                    <button onclick="updateCartItem('${p.id}', 1)" class="w-8 h-8 bg-gray-100 rounded-lg font-bold">+</button>
                 </div>
             </div>`;
     }).join("");
+    lucide.createIcons();
 }
 
 function showCart() {
     document.getElementById("cart-modal").classList.remove("hidden");
     const container = document.getElementById("cart-items");
     const btnText = document.getElementById("checkout-btn-text");
-    btnText.innerText = editingOrderId ? "ՊԱՀՊԱՆԵԼ ՓՈՓՈԽՈՒԹՅՈՒՆՆԵՐԸ" : "ՊԱՏՎԻՐԵԼ";
+    btnText.innerText = editingOrderId ? "ՊԱՀՊԱՆԵԼ" : "ՊԱՏՎԻՐԵԼ";
 
     let total = 0;
     container.innerHTML = cart.map(item => {
         total += item.price * item.qty;
         return `
-            <div class="flex justify-between items-center border-b py-2">
-                <div class="flex items-center gap-2">
-                    <img src="${item.img}" class="w-8 h-8 object-cover rounded">
-                    <span class="text-xs font-bold">${item.name} (x${item.qty})</span>
-                </div>
-                <b class="text-xs text-blue-600">${(item.price * item.qty).toLocaleString()} ֏</b>
+            <div class="flex justify-between items-center border-b py-2 italic text-gray-500">
+                <span class="text-[10px] font-bold uppercase truncate w-40">${item.name}</span>
+                <span class="text-[10px] font-black text-blue-600">x${item.qty} = ${(item.price * item.qty).toLocaleString()} ֏</span>
             </div>`;
     }).join("");
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
@@ -118,11 +123,11 @@ function checkout() {
 function renderHistory() {
     const list = document.getElementById("history-list");
     list.innerHTML = history.map(h => `
-        <div class="flex items-center gap-2 mb-2">
-            <input type="checkbox" onchange="toggleSelect('${h.id}')" ${selectedOrders.has(String(h.id)) ? 'checked' : ''} class="w-5 h-5 rounded border-gray-300">
-            <div class="flex-1 bg-white p-4 rounded-xl border flex justify-between items-center active:scale-95 transition-transform" onclick="openOrderDetails('${h.id}')">
-                <div><div class="font-bold text-sm">${h.customer}</div><div class="text-[10px] text-gray-400">${h.date}</div></div>
-                <div class="font-bold text-blue-600 text-sm">${h.total.toLocaleString()} ֏</div>
+        <div class="flex items-center gap-2 mb-2 group">
+            <input type="checkbox" onchange="toggleSelect('${h.id}')" ${selectedOrders.has(String(h.id)) ? 'checked' : ''} class="w-5 h-5 rounded border-gray-300 accent-blue-600">
+            <div class="flex-1 bg-white p-4 rounded-xl border flex justify-between items-center active:scale-95 transition-all shadow-sm" onclick="openOrderDetails('${h.id}')">
+                <div><div class="font-bold text-sm italic uppercase">${h.customer}</div><div class="text-[9px] text-gray-400">${h.date}</div></div>
+                <div class="font-black text-blue-600 text-sm">${h.total.toLocaleString()} ֏</div>
             </div>
         </div>`).join("");
     const delBtn = document.getElementById("delete-selected-btn");
@@ -155,17 +160,21 @@ function openOrderDetails(id) {
     const order = history.find(h => String(h.id) === String(id));
     if (!order) return;
     document.getElementById("order-details-content").innerHTML = `
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="font-black text-lg">${order.customer}</h2>
-            <button onclick="editOrder('${order.id}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">ԽՄԲԱԳՐԵԼ</button>
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <h2 class="font-black text-lg italic uppercase text-blue-600">${order.customer}</h2>
+            <!-- Մատիտը խմբագրելու համար -->
+            <button onclick="editOrder('${order.id}')" class="bg-blue-50 p-2 rounded-xl active:scale-90 transition-all">
+                <i data-lucide="pencil" class="w-5 h-5 text-blue-600"></i>
+            </button>
         </div>` + 
         order.items.map(i => `
-            <div class="flex gap-2 mb-2 items-center border-b pb-2">
-                <img src="${i.img}" class="w-10 h-10 object-cover rounded shadow-sm">
-                <div class="flex flex-col"><span class="text-xs font-bold">${i.name}</span><span class="text-[10px] text-gray-500">${i.qty} հատ</span></div>
+            <div class="flex gap-3 mb-3 items-center">
+                <img src="${i.img}" class="w-12 h-12 object-cover rounded-xl shadow-sm">
+                <div class="flex flex-col"><span class="text-xs font-bold">${i.name}</span><span class="text-[11px] text-blue-500 font-black">${i.qty} հատ - ${(i.price * i.qty).toLocaleString()} ֏</span></div>
             </div>`).join("") +
-        `<div class="mt-4 font-black text-blue-600 text-right">Ընդհանուր: ${order.total.toLocaleString()} ֏</div>`;
+        `<div class="mt-6 pt-4 border-t font-black text-lg text-blue-600 text-right italic">ԸՆԴՀԱՆՈՒՐ: ${order.total.toLocaleString()} ֏</div>`;
     document.getElementById("order-details-modal").classList.remove("hidden");
+    lucide.createIcons();
 }
 
 function editOrder(id) {
