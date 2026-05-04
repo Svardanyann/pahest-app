@@ -4,7 +4,7 @@ let cart = [];
 let selectedOrders = new Set();
 let editingOrderId = null;
 
-// 1. ՍԵԿՑԻԱՆԵՐ
+// 1. ՍԵԿՑԻԱՆԵՐԻ ՑՈՒՑԱԴՐՈՒՄ
 function showSection(section) {
     document.getElementById("catalog-section").classList.toggle("hidden", section !== "catalog");
     document.getElementById("history-section").classList.toggle("hidden", section !== "history");
@@ -15,17 +15,13 @@ function showSection(section) {
     if (section === "history") {
         selectedOrders.clear();
         renderHistory();
-        
-        // ՈՒԺՈՎ ԹԱՔՑՆՈՒՄ ԵՆՔ ՊԱՏՎԻՐԵԼ ԿՈՃԱԿԸ ՊԱՏՄՈՒԹՅԱՆ ՄԵՋ (ամեն դեպքում)
-        const orderBtn = document.querySelector('#history-section button[onclick="checkout()"]');
-        if (orderBtn) orderBtn.classList.add("hidden");
     }
     if (section === "catalog") {
         renderCatalog();
     }
 }
 
-// 2. ԶԱՄԲՅՈՒՂ ԵՎ ՔԱՆԱԿ
+// 2. ԶԱՄԲՅՈՒՂ ԵՎ ՔԱՆԱԿԻ ՁԵՌՔՈՎ ՄՈՒՏՔԱԳՐՈՒՄ
 function updateCartItem(id, delta) {
     const productId = String(id).trim();
     let item = cart.find(i => String(i.id).trim() === productId);
@@ -67,12 +63,14 @@ function refreshUI() {
 
 function updateCartUI() {
     const count = cart.reduce((sum, item) => sum + item.qty, 0);
-    document.getElementById("cart-count").innerText = count;
+    const countEl = document.getElementById("cart-count");
+    if (countEl) countEl.innerText = count;
+    
     const cartBtn = document.getElementById("cart-btn");
-    cartBtn.classList.toggle("hidden", !!editingOrderId || cart.length === 0);
+    if (cartBtn) cartBtn.classList.toggle("hidden", !!editingOrderId || cart.length === 0);
 }
 
-// 3. ԿԱՏԱԼՈԳ
+// 3. ԿԱՏԱԼՈԳԻ ՌԵՆԴԵՐ (ՄԻԱՅՆ +- ԵՎ ՔԱՆԱԿ)
 function renderCatalog() {
     const list = document.getElementById("product-list");
     if (!list) return;
@@ -90,7 +88,7 @@ function renderCatalog() {
                 
                 <div class="flex items-center gap-1">
                     <button onclick="updateCartItem('${p.id}', -1)" class="w-10 h-10 bg-gray-100 text-gray-800 rounded-xl font-bold active:bg-gray-200">-</button>
-                    <div onclick="setManualQty('${p.id}')" class="flex-1 bg-blue-50 text-blue-700 h-10 flex items-center justify-center rounded-xl font-black text-xs cursor-pointer active:scale-95">
+                    <div onclick="setManualQty('${p.id}')" class="flex-1 bg-blue-50 text-blue-700 h-10 flex items-center justify-center rounded-xl font-black text-xs cursor-pointer">
                         ${qty} հատ
                     </div>
                     <button onclick="updateCartItem('${p.id}', 1)" class="w-10 h-10 bg-gray-100 text-gray-800 rounded-xl font-bold active:bg-gray-200">+</button>
@@ -99,7 +97,7 @@ function renderCatalog() {
     }).join("");
 }
 
-// 4. ԶԱՄԲՅՈՒՂԻ ՄՈԴԱԼ
+// 4. ԶԱՄԲՅՈՒՂԻ ՄՈԴԱԼ (ՄԻԱՅՆ ԱՅՍՏԵՂ Է ՊԱՏՎԻՐԵԼԸ)
 function showCart() {
     document.getElementById("cart-modal").classList.remove("hidden");
     const container = document.getElementById("cart-items");
@@ -124,7 +122,6 @@ function showCart() {
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
 
-// 5. ՊԱՏՎԵՐԻ ԱՎԱՐՏ
 function checkout() {
     if (cart.length === 0) return;
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
@@ -147,7 +144,7 @@ function checkout() {
     }
 }
 
-// 6. ՊԱՏՄՈՒԹՅՈՒՆ
+// 5. ՊԱՏՄՈՒԹՅԱՆ ՌԵՆԴԵՐ (ԱՌԱՆՑ ՈՐԵՎԷ ԱՎԵԼՈՐԴ ԿՈՃԱԿԻ)
 function renderHistory() {
     const list = document.getElementById("history-list");
     const deleteBtn = document.getElementById("delete-selected-btn");
@@ -181,7 +178,7 @@ function renderHistory() {
         </div>`).join("");
 }
 
-// 7. ԸՆՏՐԵԼՈՒ ՖՈՒՆԿՑԻԱՆԵՐ
+// 6. ԸՆՏՐԵԼՈՒ ԵՎ ՋՆՋԵԼՈՒ ՖՈՒՆԿՑԻԱՆԵՐ
 function toggleSelect(id) {
     const sId = String(id);
     if (selectedOrders.has(sId)) selectedOrders.delete(sId);
@@ -207,7 +204,7 @@ function deleteSelected() {
     }
 }
 
-// 8. ՄԱՆՐԱՄԱՍՆԵՐ
+// 7. ՊԱՏՎԵՐԻ ՄԱՆՐԱՄԱՍՆԵՐ (ՆԿԱՐՆԵՐՈՎ)
 function openOrderDetails(id) {
     const order = history.find(h => String(h.id) === String(id));
     if (!order) return;
@@ -242,9 +239,10 @@ function editOrder(id) {
     showSection('catalog');
 }
 
-// 9. ՄՈԴԱԼՆԵՐԻ ՓԱԿՈՒՄ
+// 8. ՕԳՆՈՂ ՖՈՒՆԿՑԻԱՆԵՐ
 function closeCart() { document.getElementById("cart-modal").classList.add("hidden"); }
 function closeOrderDetails() { document.getElementById("order-details-modal").classList.add("hidden"); }
 function prepareEditProduct(id) { console.log("Edit product:", id); }
 
+// Սկզբնական ցուցադրում
 renderCatalog();
