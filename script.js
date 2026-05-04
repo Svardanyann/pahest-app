@@ -61,7 +61,7 @@ function renderCatalog() {
         return `
             <div class="bg-white p-2 rounded-2xl shadow-sm border relative">
                 <img src="${p.img}" class="w-full h-32 object-cover rounded-xl mb-2">
-                <div class="font-bold text-[11px] px-1">${p.name}</div>
+                <div class="font-bold text-[11px] px-1 h-8 overflow-hidden">${p.name}</div>
                 <div class="text-blue-600 font-bold text-sm px-1 mb-2">${p.price.toLocaleString()} ֏</div>
                 <div class="flex items-center gap-1">
                     <button onclick="updateCartItem('${p.id}', -1)" class="w-8 h-8 bg-gray-100 rounded-lg">-</button>
@@ -78,7 +78,7 @@ function showCart() {
     let total = 0;
     container.innerHTML = cart.map(item => {
         total += item.price * item.qty;
-        return `<div class="flex justify-between border-b py-2 text-xs"><span>${item.name} x${item.qty}</span><b>${(item.price * item.qty).toLocaleString()} ֏</b></div>`;
+        return `<div class="flex justify-between border-b py-2 text-[10px]"><span>${item.name} x${item.qty}</span><b>${(item.price * item.qty).toLocaleString()} ֏</b></div>`;
     }).join("");
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
@@ -87,29 +87,63 @@ function checkout() {
     if (cart.length === 0) return;
     const user = prompt("Պատվիրատուի անունը:");
     if (!user) return;
-    history.unshift({ id: Date.now(), customer: user, items: [...cart], total: cart.reduce((s, i) => s + (i.price * i.qty), 0), date: new Date().toLocaleString("hy-AM") });
+    history.unshift({ 
+        id: Date.now(), 
+        customer: user, 
+        items: [...cart], 
+        total: cart.reduce((s, i) => s + (i.price * i.qty), 0), 
+        date: new Date().toLocaleString("hy-AM") 
+    });
     localStorage.setItem("orderHistory", JSON.stringify(history));
-    cart = []; editingOrderId = null; refreshUI(); closeCart(); showSection('history');
+    cart = []; refreshUI(); closeCart(); showSection('history');
 }
 
 function renderHistory() {
     const list = document.getElementById("history-list");
     list.innerHTML = history.map(h => `
-        <div class="bg-white p-4 rounded-xl border mb-2 flex justify-between items-center" onclick="openOrderDetails('${h.id}')">
-            <div><div class="font-bold">${h.customer}</div><div class="text-[10px] text-gray-400">${h.date}</div></div>
-            <div class="font-bold text-blue-600">${h.total.toLocaleString()} ֏</div>
+        <div class="flex items-center gap-2 mb-2">
+            <input type="checkbox" onchange="toggleSelect('${h.id}')" ${selectedOrders.has(String(h.id)) ? 'checked' : ''} class="w-5 h-5">
+            <div class="flex-1 bg-white p-4 rounded-xl border flex justify-between items-center" onclick="openOrderDetails('${h.id}')">
+                <div><div class="font-bold">${h.customer}</div><div class="text-[10px] text-gray-400">${h.date}</div></div>
+                <div class="font-bold text-blue-600">${h.total.toLocaleString()} ֏</div>
+            </div>
         </div>`).join("");
+    const delBtn = document.getElementById("delete-selected-btn");
+    delBtn.classList.toggle("hidden", selectedOrders.size === 0);
+    delBtn.innerText = `Ջնջել (${selectedOrders.size})`;
+}
+
+function toggleSelect(id) {
+    const sId = String(id);
+    if (selectedOrders.has(sId)) selectedOrders.delete(sId); else selectedOrders.add(sId);
+    renderHistory();
+}
+
+function toggleSelectAll() {
+    if (selectedOrders.size === history.length) selectedOrders.clear();
+    else history.forEach(h => selectedOrders.add(String(h.id)));
+    renderHistory();
+}
+
+function deleteSelected() {
+    if (confirm("Ջնջե՞լ ընտրված պատվերները")) {
+        history = history.filter(h => !selectedOrders.has(String(h.id)));
+        localStorage.setItem("orderHistory", JSON.stringify(history));
+        selectedOrders.clear();
+        renderHistory();
+    }
 }
 
 function openOrderDetails(id) {
     const order = history.find(h => String(h.id) === String(id));
     if (!order) return;
     document.getElementById("order-details-content").innerHTML = `<h2 class="font-black mb-4">${order.customer}</h2>` + 
-        order.items.map(i => `<div class="flex gap-2 mb-2"><img src="${i.img}" class="w-8 h-8 object-cover rounded"><span>${i.name} (x${i.qty})</span></div>`).join("") +
+        order.items.map(i => `<div class="flex gap-2 mb-2 items-center"><img src="${i.img}" class="w-10 h-10 object-cover rounded"><span>${i.name} (x${i.qty})</span></div>`).join("") +
         `<div class="mt-4 font-bold text-blue-600">Ընդհանուր: ${order.total.toLocaleString()} ֏</div>`;
     document.getElementById("order-details-modal").classList.remove("hidden");
 }
 
 function closeCart() { document.getElementById("cart-modal").classList.add("hidden"); }
 function closeOrderDetails() { document.getElementById("order-details-modal").classList.add("hidden"); }
+
 renderCatalog();
