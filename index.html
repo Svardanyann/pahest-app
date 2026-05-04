@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Պատվերների համակարգ</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Մատիտի icon-ի համար -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style> 
+    <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .hidden { display: none; }
@@ -15,55 +14,27 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
 
-    <header class="bg-white border-b sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
-        <h1 id="main-title" class="text-xl font-black text-blue-600 italic text-transform: uppercase">ԿԱՏԱԼՈԳ</h1>
-        <button id="cart-btn" onclick="showCart()" class="relative p-2 bg-blue-50 rounded-full hidden">
-            🛒 <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
-        </button>
+    <header class="bg-white border-b sticky top-0 z-50 px-4 py-3 flex justify-between items-center shadow-sm">
+        <h1 id="main-title" class="text-xl font-black text-blue-600 italic uppercase">ԿԱՏԱԼՈԳ</h1>
+        <div class="flex items-center gap-3">
+            <button onclick="openAddProductModal()" class="bg-blue-600 text-white p-2 rounded-lg active:scale-90 transition-all">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+            <button id="cart-btn" onclick="showCart()" class="relative p-2 bg-blue-50 rounded-full hidden">
+                🛒 <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+            </button>
+        </div>
     </header>
-    <!-- Նկարը մեծացնելու պատուհան -->
-<div id="image-zoom-modal" class="fixed inset-0 bg-black z-[100] hidden flex items-center justify-center" onclick="closeImageZoom()">
-    <img id="zoomed-image" src="" class="max-w-full max-h-full object-contain">
-</div>
-
-<!-- Ապրանքը խմբագրելու պատուհան -->
-<div id="edit-product-modal" class="fixed inset-0 bg-black/50 z-[70] hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
-        <h2 class="text-xl font-black mb-4 italic text-blue-600">ԽՄԲԱԳՐԵԼ ԱՊՐԱՆՔԸ</h2>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="text-[10px] font-bold text-gray-400">ԱՆՈՒՆ</label>
-                <input type="text" id="edit-p-name" class="w-full bg-gray-50 border rounded-xl p-3 font-bold">
-            </div>
-            <div>
-                <label class="text-[10px] font-bold text-gray-400">ԳԻՆ (֏)</label>
-                <input type="number" id="edit-p-price" class="w-full bg-gray-50 border rounded-xl p-3 font-bold">
-            </div>
-            <div>
-                <label class="text-[10px] font-bold text-gray-400">ՆԿԱՐ</label>
-                <input type="file" id="edit-p-img-input" accept="image/*" class="w-full text-xs">
-                <img id="edit-p-preview" src="" class="w-20 h-20 object-cover rounded-xl mt-2 border">
-            </div>
-        </div>
-
-        <div class="flex gap-2 mt-6">
-            <button onclick="closeEditProduct()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold">ՉԵՂԱՐԿԵԼ</button>
-            <button onclick="saveProductChanges()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">ՊԱՀՊԱՆԵԼ</button>
-        </div>
-    </div>
-</div>
 
     <main id="catalog-section" class="p-4 pb-32">
         <div id="product-list" class="grid grid-cols-2 gap-3"></div>
     </main>
 
     <section id="history-section" class="hidden p-4 pb-32">
-        <div class="flex justify-between items-center mb-4 text-[10px]">
-            <h2 class="text-lg font-black italic text-gray-400">ՊԱՏՄՈՒԹՅՈՒՆ</h2>
+        <div class="flex justify-between items-center mb-4">
             <div class="flex gap-2">
-                <button onclick="toggleSelectAll()" class="bg-gray-200 px-3 py-1.5 rounded-lg font-bold">Ընտրել բոլորը</button>
-                <button id="delete-selected-btn" onclick="deleteSelected()" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-bold hidden italic">Ջնջել</button>
+                <button onclick="toggleSelectAll()" class="text-[10px] bg-gray-200 px-3 py-1.5 rounded-lg font-bold uppercase">Ընտրել բոլորը</button>
+                <button id="delete-selected-btn" onclick="deleteSelected()" class="text-[10px] bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-bold hidden italic uppercase">Ջնջել</button>
             </div>
         </div>
         <div id="history-list"></div>
@@ -80,23 +51,63 @@
         </button>
     </nav>
 
+    <!-- ՆԿԱՐԸ ՄԵԾԱՑՆԵԼՈՒ ՄՈԴԱԼ -->
+    <div id="image-zoom-modal" class="fixed inset-0 bg-black z-[100] hidden flex items-center justify-center" onclick="closeImageZoom()">
+        <img id="zoomed-image" src="" class="max-w-full max-h-full object-contain">
+    </div>
+
+    <!-- ԱՎԵԼԱՑՆԵԼՈՒ ՄՈԴԱԼ -->
+    <div id="add-product-modal" class="fixed inset-0 bg-black/50 z-[70] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
+            <h2 class="text-xl font-black mb-4 italic text-blue-600 uppercase">Նոր ապրանք</h2>
+            <div class="space-y-4">
+                <input type="text" id="add-p-name" placeholder="Անուն" class="w-full bg-gray-50 border rounded-xl p-3 font-bold">
+                <input type="number" id="add-p-price" placeholder="Գին (֏)" class="w-full bg-gray-50 border rounded-xl p-3 font-bold">
+                <input type="file" id="add-p-img-input" accept="image/*" class="w-full text-xs">
+            </div>
+            <div class="flex gap-2 mt-6">
+                <button onclick="closeAddProductModal()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold uppercase text-xs">Չեղարկել</button>
+                <button onclick="saveNewProduct()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold uppercase text-xs">Ավելացնել</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ԽՄԲԱԳՐԵԼՈՒ ՄՈԴԱԼ -->
+    <div id="edit-product-modal" class="fixed inset-0 bg-black/50 z-[70] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
+            <h2 class="text-xl font-black mb-4 italic text-blue-600 uppercase">Խմբագրել</h2>
+            <div class="space-y-4">
+                <input type="text" id="edit-p-name" class="w-full bg-gray-50 border rounded-xl p-3 font-bold">
+                <input type="number" id="edit-p-price" class="w-full bg-gray-50 border rounded-xl p-3 font-bold">
+                <input type="file" id="edit-p-img-input" accept="image/*" class="w-full text-xs">
+                <img id="edit-p-preview" src="" class="w-20 h-20 object-cover rounded-xl mt-2 border">
+            </div>
+            <div class="flex gap-2 mt-6">
+                <button onclick="closeEditProduct()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold uppercase text-xs">Չեղարկել</button>
+                <button onclick="saveProductChanges()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold uppercase text-xs">Պահպանել</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ԶԱՄԲՅՈՒՂ -->
     <div id="cart-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-end">
-        <div class="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto shadow-2xl">
+        <div class="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-black">Զամբյուղ</h2>
-                <button onclick="closeCart()" class="text-2xl font-light">✕</button>
+                <h2 class="text-xl font-black italic">ԶԱՄԲՅՈՒՂ</h2>
+                <button onclick="closeCart()" class="text-2xl">✕</button>
             </div>
             <div id="cart-items" class="mb-6"></div>
             <div class="flex justify-between items-center mb-6 pt-4 border-t">
-                <span class="font-bold text-gray-500">Ընդհանուր</span>
+                <span class="font-bold text-gray-400 italic">ԸՆԴՀԱՆՈՒՐ</span>
                 <span id="cart-total-price" class="text-xl font-black text-blue-600">0 ֏</span>
             </div>
-            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg active:scale-95 transition-all shadow-lg shadow-blue-200">
-                <span id="checkout-btn-text">ՊԱՏՎԻՐԵԼ</span>
+            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">
+                <span id="checkout-btn-text uppercase">ՊԱՏՎԻՐԵԼ</span>
             </button>
         </div>
     </div>
 
+    <!-- ՊԱՏՎԵՐԻ ՄԱՆՐԱՄԱՍՆԵՐ -->
     <div id="order-details-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 relative shadow-2xl">
             <button onclick="closeOrderDetails()" class="absolute top-4 right-4 text-xl text-gray-400">✕</button>
