@@ -15,6 +15,10 @@ function showSection(section) {
     if (section === "history") {
         selectedOrders.clear();
         renderHistory();
+        
+        // ՈՒԺՈՎ ԹԱՔՑՆՈՒՄ ԵՆՔ ՊԱՏՎԻՐԵԼ ԿՈՃԱԿԸ ՊԱՏՄՈՒԹՅԱՆ ՄԵՋ (ամեն դեպքում)
+        const orderBtn = document.querySelector('#history-section button[onclick="checkout()"]');
+        if (orderBtn) orderBtn.classList.add("hidden");
     }
     if (section === "catalog") {
         renderCatalog();
@@ -65,7 +69,6 @@ function updateCartUI() {
     const count = cart.reduce((sum, item) => sum + item.qty, 0);
     document.getElementById("cart-count").innerText = count;
     const cartBtn = document.getElementById("cart-btn");
-    // Թաքցնում ենք զամբյուղի կոճակը, եթե խմբագրում ենք կամ զամբյուղը դատարկ է
     cartBtn.classList.toggle("hidden", !!editingOrderId || cart.length === 0);
 }
 
@@ -167,7 +170,7 @@ function renderHistory() {
 
     list.innerHTML = history.map(h => `
         <div class="flex items-center gap-3 mb-2">
-            <input type="checkbox" onchange="toggleSelect('${h.id}')" ${selectedOrders.has(String(h.id)) ? 'checked' : ''} class="w-5 h-5 rounded border-gray-300">
+            <input type="checkbox" onchange="toggleSelect('${h.id}')" ${selectedOrders.has(String(h.id)) ? 'checked' : ''} class="w-5 h-5 rounded">
             <div onclick="openOrderDetails('${h.id}')" class="flex-1 bg-white p-4 rounded-2xl shadow-sm border flex justify-between items-center active:scale-95 transition-transform">
                 <div class="flex flex-col">
                     <span class="font-black text-gray-800">${h.customer}</span>
@@ -204,7 +207,7 @@ function deleteSelected() {
     }
 }
 
-// 8. ՄԱՆՐԱՄԱՍՆԵՐ (ՈՒՂՂՎԱԾ ՆԿԱՐՆԵՐՈՎ)
+// 8. ՄԱՆՐԱՄԱՍՆԵՐ
 function openOrderDetails(id) {
     const order = history.find(h => String(h.id) === String(id));
     if (!order) return;
