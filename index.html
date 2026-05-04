@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Պատվերների համակարգ</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style> 
+    <!-- Մատիտի icon-ի համար -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .hidden { display: none; }
@@ -25,11 +27,11 @@
     </main>
 
     <section id="history-section" class="hidden p-4 pb-32">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-black">Պատմություն</h2>
+        <div class="flex justify-between items-center mb-4 text-[10px]">
+            <h2 class="text-lg font-black italic text-gray-400">ՊԱՏՄՈՒԹՅՈՒՆ</h2>
             <div class="flex gap-2">
-                <button onclick="toggleSelectAll()" class="text-xs bg-gray-200 px-3 py-1.5 rounded-lg font-bold">Ընտրել բոլորը</button>
-                <button id="delete-selected-btn" onclick="deleteSelected()" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-bold hidden italic">Ջնջել</button>
+                <button onclick="toggleSelectAll()" class="bg-gray-200 px-3 py-1.5 rounded-lg font-bold">Ընտրել բոլորը</button>
+                <button id="delete-selected-btn" onclick="deleteSelected()" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-bold hidden italic">Ջնջել</button>
             </div>
         </div>
         <div id="history-list"></div>
@@ -46,9 +48,8 @@
         </button>
     </nav>
 
-    <!-- ԶԱՄԲՅՈՒՂԻ ՄՈԴԱԼ -->
     <div id="cart-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-end">
-        <div class="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto">
+        <div class="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto shadow-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-black">Զամբյուղ</h2>
                 <button onclick="closeCart()" class="text-2xl font-light">✕</button>
@@ -58,20 +59,20 @@
                 <span class="font-bold text-gray-500">Ընդհանուր</span>
                 <span id="cart-total-price" class="text-xl font-black text-blue-600">0 ֏</span>
             </div>
-            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg active:scale-95 transition-transform">
+            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg active:scale-95 transition-all shadow-lg shadow-blue-200">
                 <span id="checkout-btn-text">ՊԱՏՎԻՐԵԼ</span>
             </button>
         </div>
     </div>
 
-    <!-- ՄԱՆՐԱՄԱՍՆԵՐԻ ՄՈԴԱԼ -->
     <div id="order-details-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-3xl p-6 relative">
-            <button onclick="closeOrderDetails()" class="absolute top-4 right-4 text-xl">✕</button>
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 relative shadow-2xl">
+            <button onclick="closeOrderDetails()" class="absolute top-4 right-4 text-xl text-gray-400">✕</button>
             <div id="order-details-content"></div>
         </div>
     </div>
 
     <script src="script.js"></script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
