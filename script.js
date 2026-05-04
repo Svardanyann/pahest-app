@@ -21,21 +21,43 @@ function showSection(section) {
     }
 }
 
-// 2. ԶԱՄԲՅՈՒՂԻ ԿԱՌԱՎԱՐՈՒՄ
+// 2. ԶԱՄԲՅՈՒՂԻ ԿԱՌԱՎԱՐՈՒՄ ԵՎ ՔԱՆԱԿԻ ՄՈՒՏՔԱԳՐՈՒՄ
 function updateCartItem(id, delta) {
     const productId = String(id).trim();
-    const existingItem = cart.find(item => String(item.id).trim() === productId);
+    let item = cart.find(i => String(i.id).trim() === productId);
 
-    if (existingItem) {
-        existingItem.qty += delta;
-        if (existingItem.qty <= 0) {
-            cart = cart.filter(item => String(item.id).trim() !== productId);
-        }
+    if (item) {
+        item.qty += delta;
+        if (item.qty <= 0) cart = cart.filter(i => String(i.id).trim() !== productId);
     } else if (delta > 0) {
         const p = products.find(x => String(x.id).trim() === productId);
-        if (p) cart.push({ ...p, qty: 1 });
+        if (p) cart.push({ ...p, qty: delta });
     }
+    refreshUI();
+}
+
+// ՆՈՐ: Քանակը ձեռքով գրելու ֆունկցիա
+function setManualQty(id) {
+    const val = prompt("Մուտքագրեք քանակը:");
+    if (val === null) return;
+    const qty = parseInt(val);
     
+    const productId = String(id).trim();
+    if (isNaN(qty) || qty <= 0) {
+        cart = cart.filter(i => String(i.id).trim() !== productId);
+    } else {
+        let item = cart.find(i => String(i.id).trim() === productId);
+        if (item) {
+            item.qty = qty;
+        } else {
+            const p = products.find(x => String(x.id).trim() === productId);
+            if (p) cart.push({ ...p, qty: qty });
+        }
+    }
+    refreshUI();
+}
+
+function refreshUI() {
     updateCartUI();
     renderCatalog();
     if (!document.getElementById("cart-modal").classList.contains("hidden")) showCart();
@@ -44,17 +66,11 @@ function updateCartItem(id, delta) {
 function updateCartUI() {
     const count = cart.reduce((sum, item) => sum + item.qty, 0);
     document.getElementById("cart-count").innerText = count;
-    
-    // ՃԿՈՒՆՈՒԹՅՈՒՆ: Եթե խմբագրման ռեժիմ է, զամբյուղի կոճակը թաքցնում ենք
     const cartBtn = document.getElementById("cart-btn");
-    if (editingOrderId) {
-        cartBtn.classList.add("hidden");
-    } else {
-        cartBtn.classList.toggle("hidden", cart.length === 0);
-    }
+    cartBtn.classList.toggle("hidden", editingOrderId || cart.length === 0);
 }
 
-// 3. ԿԱՏԱԼՈԳԻ ՌԵՆԴԵՐ (ՄԱՏԻՏՈՎ)
+// 3. ԿԱՏԱԼՈԳԻ ՌԵՆԴԵՐ (ՄԻԱՅՆ +- ԵՎ ՁԵՌՔՈՎ ՄՈՒՏՔ)
 function renderCatalog() {
     const list = document.getElementById("product-list");
     if (!list) return;
@@ -65,47 +81,29 @@ function renderCatalog() {
 
         return `
             <div class="bg-white p-2 rounded-2xl shadow-sm border relative">
-                <!-- ՓՈՓՈԽՈՒԹՅՈՒՆ: Աղբամանը փոխարինվեց Մատիտով -->
                 <button onclick="prepareEditProduct('${p.id}')" class="absolute top-1 right-1 bg-white/90 w-7 h-7 rounded-full text-xs z-10 shadow-sm flex items-center justify-center">✏️</button>
-                
-                <img src="${p.img}" class="w-full h-32 object-cover rounded-xl mb-2">
+                <img src="${p.img}" class="w-full h-32 object-cover rounded-xl mb-2 pointer-events-none">
                 <div class="font-bold text-[11px] h-8 overflow-hidden px-1">${p.name}</div>
                 <div class="text-blue-600 font-bold text-sm px-1 mb-2">${p.price.toLocaleString()} ֏</div>
                 
                 <div class="flex items-center gap-1">
-                    ${qty > 0 ? `
-                        <button onclick="updateCartItem('${p.id}', -1)" class="w-8 h-10 bg-gray-100 text-gray-800 rounded-xl font-bold">-</button>
-                        <div class="flex-1 bg-blue-50 text-blue-700 h-10 flex items-center justify-center rounded-xl font-black text-xs">
-                            ${qty} հատ
-                        </div>
-                        <button onclick="updateCartItem('${p.id}', 1)" class="w-8 h-10 bg-gray-100 text-gray-800 rounded-xl font-bold">+</button>
-                    ` : `
-                        <button onclick="updateCartItem('${p.id}', 1)" class="w-full bg-orange-500 text-white py-2.5 rounded-xl text-[10px] font-bold">
-                            + ԱՎԵԼԱՑՆԵԼ
-                        </button>
-                    `}
+                    <button onclick="updateCartItem('${p.id}', -1)" class="w-10 h-10 bg-gray-100 text-gray-800 rounded-xl font-bold active:bg-gray-200">-</button>
+                    <div onclick="setManualQty('${p.id}')" class="flex-1 bg-blue-50 text-blue-700 h-10 flex items-center justify-center rounded-xl font-black text-xs cursor-pointer active:scale-95">
+                        ${qty} հատ
+                    </div>
+                    <button onclick="updateCartItem('${p.id}', 1)" class="w-10 h-10 bg-gray-100 text-gray-800 rounded-xl font-bold active:bg-gray-200">+</button>
                 </div>
             </div>
         `;
     }).join("");
 }
 
-// 4. ԱՊՐԱՆՔԻ ԽՄԲԱԳՐՄԱՆ ՖՈՒՆԿՑԻԱ (ԴԵՌ ԴԱՏԱՐԿ Է ՀԵՏԱԳԱՅԻ ՀԱՄԱՐ)
-function prepareEditProduct(id) {
-    // Այստեղ հետագայում կավելացնենք նկար ու գին փոխելու տրամաբանությունը
-    console.log("Խմբագրել ապրանքը ID:", id);
-    alert("Ապրանքի խմբագրման ֆունկցիան շուտով պատրաստ կլինի (ID: " + id + ")");
-}
-
-// 5. ԶԱՄԲՅՈՒՂԻ ՊԱՏՈՒՀԱՆ
+// 4. ԶԱՄԲՅՈՒՂԻ ԵՎ ՊԱՏՎԵՐԻ ՏՐԱՄԱԲԱՆՈՒԹՅՈՒՆ
 function showCart() {
     document.getElementById("cart-modal").classList.remove("hidden");
     const container = document.getElementById("cart-items");
     const checkoutBtnText = document.getElementById("checkout-btn-text");
-    
-    if (checkoutBtnText) {
-        checkoutBtnText.innerText = editingOrderId ? "ՊԱՀՊԱՆԵԼ ՓՈՓՈԽՈՒԹՅՈՒՆՆԵՐԸ" : "ՊԱՏՎԻՐԵԼ";
-    }
+    if (checkoutBtnText) checkoutBtnText.innerText = editingOrderId ? "ՊԱՀՊԱՆԵԼ ՓՈՓՈԽՈՒԹՅՈՒՆՆԵՐԸ" : "ՊԱՏՎԻՐԵԼ";
 
     let total = 0;
     container.innerHTML = cart.map((item) => {
@@ -113,79 +111,57 @@ function showCart() {
         return `
             <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border mb-2 px-2">
                 <div class="flex items-center gap-2">
-                    <img src="${item.img}" class="w-10 h-10 object-cover rounded">
+                    <img src="${item.img}" class="w-8 h-8 object-cover rounded">
                     <div class="flex flex-col text-[10px]">
                         <span class="font-bold">${item.name}</span>
                         <span>${item.price.toLocaleString()} x ${item.qty}</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="font-bold text-blue-600 text-xs">${(item.price * item.qty).toLocaleString()} ֏</span>
-                    <button onclick="updateCartItem('${item.id}', -${item.qty})" class="text-red-500 font-bold ml-1">✕</button>
-                </div>
+                <button onclick="updateCartItem('${item.id}', -${item.qty})" class="text-red-500 text-xs">✕</button>
             </div>`;
     }).join("");
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
 
-// 6. ՊԱՏՎԵՐԻ ՎԵՐՋՆԱԿԱՆԱՑՈՒՄ
 function checkout() {
     if (cart.length === 0) return;
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
 
     if (editingOrderId) {
-        const index = history.findIndex(h => String(h.id) === String(editingOrderId));
-        if (index !== -1) {
-            history[index].items = JSON.parse(JSON.stringify(cart));
-            history[index].total = total;
-            history[index].date = new Date().toLocaleString("hy-AM") + " (խմբագրված)";
+        const idx = history.findIndex(h => String(h.id) === String(editingOrderId));
+        if (idx !== -1) {
+            history[idx].items = [...cart];
+            history[idx].total = total;
+            history[idx].date = new Date().toLocaleString("hy-AM") + " (խմբ.)";
             localStorage.setItem("orderHistory", JSON.stringify(history));
-            
-            // Մաքրում ենք ամեն ինչ խմբագրելուց հետո
-            editingOrderId = null;
-            cart = [];
-            updateCartUI();
-            closeCart();
-            showSection('history');
+            editingOrderId = null; cart = []; refreshUI(); closeCart(); showSection('history');
         }
     } else {
         const user = prompt("Պատվիրատուի անունը:");
         if (!user) return;
-        const newOrder = { id: Date.now(), customer: user, items: [...cart], total: total, date: new Date().toLocaleString("hy-AM") };
-        history.unshift(newOrder);
+        history.unshift({ id: Date.now(), customer: user, items: [...cart], total, date: new Date().toLocaleString("hy-AM") });
         localStorage.setItem("orderHistory", JSON.stringify(history));
-        cart = [];
-        updateCartUI();
-        closeCart();
-        showSection('history');
+        cart = []; refreshUI(); closeCart(); showSection('history');
     }
 }
 
-// --- ՄՆԱՑԱԾ ՖՈՒՆԿՑԻԱՆԵՐԸ (renderHistory, toggleSelect և այլն) ՆՈՒՅՆՆ ԵՆ ---
-
+// 5. ՊԱՏՄՈՒԹՅԱՆ ՌԵՆԴԵՐ (ԱՌԱՆՑ ՊԱՏՎԻՐԵԼՈՒ ԿՈՃԱԿԻ)
 function renderHistory() {
     const list = document.getElementById("history-list");
     const deleteBtn = document.getElementById("delete-selected-btn");
-    const selectAllBtn = document.getElementById("select-all-btn");
-    
     if (history.length === 0) {
         list.innerHTML = '<div class="text-center py-20 text-gray-400 italic">Պատմությունը դատարկ է</div>';
         if (deleteBtn) deleteBtn.classList.add("hidden");
         return;
     }
-
     if (deleteBtn) {
         deleteBtn.classList.toggle("hidden", selectedOrders.size === 0);
         deleteBtn.innerText = `Ջնջել (${selectedOrders.size})`;
     }
-    if (selectAllBtn) {
-        selectAllBtn.innerText = selectedOrders.size === history.length ? "Հանել նշումները" : "Ընտրել բոլորը";
-    }
-
     list.innerHTML = history.map(h => `
         <div class="flex items-center gap-3 mb-2">
             <input type="checkbox" onchange="toggleSelect('${h.id}')" ${selectedOrders.has(String(h.id)) ? 'checked' : ''} class="w-5 h-5">
-            <div onclick="openOrderDetails('${h.id}')" class="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-50 flex justify-between items-center active:scale-95">
+            <div onclick="openOrderDetails('${h.id}')" class="flex-1 bg-white p-4 rounded-2xl shadow-sm border flex justify-between items-center active:scale-95 transition-transform">
                 <div class="flex flex-col">
                     <span class="font-black text-gray-800">${h.customer}</span>
                     <span class="text-[10px] text-gray-400">${h.date}</span>
@@ -196,49 +172,25 @@ function renderHistory() {
     `).join("");
 }
 
+// ՕԳՆՈՂ ՖՈՒՆԿՑԻԱՆԵՐ
 function toggleSelect(id) {
     const sId = String(id);
-    if (selectedOrders.has(sId)) selectedOrders.delete(sId);
-    else selectedOrders.add(sId);
-    renderHistory();
-}
-
-function toggleSelectAll() {
-    if (selectedOrders.size === history.length) {
-        selectedOrders.clear();
-    } else {
-        history.forEach(h => selectedOrders.add(String(h.id)));
-    }
+    if (selectedOrders.has(sId)) selectedOrders.delete(sId); else selectedOrders.add(sId);
     renderHistory();
 }
 
 function openOrderDetails(id) {
     const order = history.find(h => String(h.id) === String(id));
     if (!order) return;
-
-    const container = document.getElementById("order-details-content");
-    container.innerHTML = `
-        <div class="mb-6 flex justify-between items-start">
-            <div>
-                <h2 class="text-2xl font-black text-gray-800">${order.customer}</h2>
-                <p class="text-xs text-gray-400">${order.date}</p>
-            </div>
+    document.getElementById("order-details-content").innerHTML = `
+        <div class="mb-6 flex justify-between items-center">
+            <h2 class="text-xl font-black">${order.customer}</h2>
             <button onclick="editOrder('${order.id}')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Խմբագրել</button>
         </div>
-        <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
-            ${order.items.map(i => `
-                <div class="flex justify-between items-center border-b border-gray-50 pb-3">
-                    <div class="flex items-center gap-3">
-                        <img src="${i.img}" class="w-12 h-12 object-cover rounded-xl">
-                        <div class="flex flex-col">
-                            <span class="text-sm font-bold">${i.name}</span>
-                            <span class="text-xs text-gray-500">${i.price.toLocaleString()} x ${i.qty}</span>
-                        </div>
-                    </div>
-                    <span class="text-sm font-black text-gray-800">${(i.price * i.qty).toLocaleString()} ֏</span>
-                </div>
-            `).join("")}
+        <div class="space-y-3">
+            ${order.items.map(i => `<div class="flex justify-between text-sm border-b pb-2"><span>${i.name} (x${i.qty})</span><b>${(i.price * i.qty).toLocaleString()} ֏</b></div>`).join("")}
         </div>
+        <div class="mt-4 text-right font-black text-blue-600">Ընդհանուր: ${order.total.toLocaleString()} ֏</div>
     `;
     document.getElementById("order-details-modal").classList.remove("hidden");
 }
@@ -249,10 +201,11 @@ function editOrder(id) {
     cart = JSON.parse(JSON.stringify(order.items));
     editingOrderId = id;
     closeOrderDetails();
-    updateCartUI(); // Սա հիմա ավտոմատ կթաքցնի զամբյուղի կոճակը
+    refreshUI();
     showSection('catalog');
 }
 
+function prepareEditProduct(id) { console.log("Edit product:", id); }
 function closeCart() { document.getElementById("cart-modal").classList.add("hidden"); }
 function closeOrderDetails() { document.getElementById("order-details-modal").classList.add("hidden"); }
 
