@@ -3,7 +3,7 @@ let history = JSON.parse(localStorage.getItem("orderHistory")) || [];
 let cart = [];
 let selectedOrders = new Set();
 let editingOrderId = null;
-let currentEditingProductId = null;
+let currentEditingProductId = null; 
 
 function showSection(section) { 
     const headerTitle = document.getElementById("main-title");
