@@ -7,12 +7,24 @@ let currentEditingProductId = null;
 
 // 1. Բաժինների փոփոխություն
 function showSection(section) {
+    const headerTitle = document.querySelector('header h1'); // Գտնում ենք վերնագիրը
+    
     document.getElementById("catalog-section").classList.toggle("hidden", section !== "catalog");
     document.getElementById("history-section").classList.toggle("hidden", section !== "history");
+    
+    // Փոխում ենք վերնագիրը կախված բաժնից
+    if (section === 'history') {
+        headerTitle.innerText = "ՊԱՏՎԵՐՆԵՐ";
+        selectedOrders.clear(); 
+        renderHistory();
+    } else {
+        headerTitle.innerText = "ԿԱՏԱԼՈԳ";
+        renderCatalog();
+    }
+
+    // Նավիգացիայի կոճակների գույները
     document.getElementById("nav-catalog").className = section === 'catalog' ? 'flex flex-col items-center flex-1 text-blue-600 font-bold' : 'flex flex-col items-center flex-1 text-gray-400';
     document.getElementById("nav-history").className = section === 'history' ? 'flex flex-col items-center flex-1 text-blue-600 font-bold' : 'flex flex-col items-center flex-1 text-gray-400';
-    if (section === "history") { selectedOrders.clear(); renderHistory(); }
-    if (section === "catalog") { renderCatalog(); }
 }
 
 // 2. Զամբյուղի գործողություններ
