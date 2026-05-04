@@ -5,22 +5,21 @@ let selectedOrders = new Set();
 let editingOrderId = null;
 let currentEditingProductId = null;
 
-// 1. Բաժինների փոփոխություն (Կոճակի թաքցնելը այստեղ է)
 function showSection(section) {
     const headerTitle = document.getElementById("main-title");
-    const addBtn = document.getElementById("add-btn"); // (+) կոճակը
+    const addBtn = document.getElementById("add-btn");
     
     document.getElementById("catalog-section").classList.toggle("hidden", section !== "catalog");
     document.getElementById("history-section").classList.toggle("hidden", section !== "history");
-     
+    
     if (section === 'history') {
         headerTitle.innerText = "ՊԱՏՎԵՐՆԵՐ";
-        addBtn.classList.add("hidden"); // Թաքցնել (+) կոճակը Պատմության մեջ
+        addBtn.classList.add("hidden");
         selectedOrders.clear(); 
         renderHistory();
     } else {
         headerTitle.innerText = "ԿԱՏԱԼՈԳ";
-        addBtn.classList.remove("hidden"); // Ցուցադրել (+) կոճակը Կատալոգում
+        addBtn.classList.remove("hidden");
         renderCatalog();
     }
 
@@ -28,7 +27,7 @@ function showSection(section) {
     document.getElementById("nav-history").className = section === 'history' ? 'flex flex-col items-center flex-1 text-blue-600 font-bold' : 'flex flex-col items-center flex-1 text-gray-400';
 }
 
-// 2. Ապրանքի ավելացում
+// Ապրանքի ավելացում
 function openAddProductModal() { document.getElementById("add-product-modal").classList.remove("hidden"); }
 function closeAddProductModal() {
     document.getElementById("add-product-modal").classList.add("hidden");
@@ -52,7 +51,7 @@ async function saveNewProduct() {
     reader.readAsDataURL(imgInput.files[0]);
 }
 
-// 3. Կատալոգի արտածում
+// Կատալոգ
 function renderCatalog() {
     const list = document.getElementById("product-list");
     if (!list) return;
@@ -85,7 +84,7 @@ function zoomImage(src) {
 }
 function closeImageZoom() { document.getElementById("image-zoom-modal").classList.add("hidden"); }
 
-// 4. Ապրանքի խմբագրում
+// Խմբագրում
 function openEditProduct(id) {
     const p = products.find(x => String(x.id) === String(id));
     if (!p) return;
@@ -116,7 +115,7 @@ function finishSaving() {
     renderCatalog();
 }
 
-// 5. Զամբյուղ և Պատվեր
+// Զամբյուղ
 function updateCartItem(id, delta) {
     const pId = String(id);
     let item = cart.find(i => String(i.id) === pId);
@@ -174,29 +173,33 @@ function showCart() {
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
 
-// Պատվերի վերջնականացում և ԶԱՄԲՅՈՒՂԻ ՓԱԿՈՒՄ
 function checkout() {
     if (cart.length === 0) return;
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+    
     if (editingOrderId) {
         const idx = history.findIndex(h => String(h.id) === String(editingOrderId));
-        history[idx].items = [...cart]; 
-        history[idx].total = total; 
-        if (!history[idx].date.includes("(խմբ.)")) history[idx].date += " (խմբ.)";
+        if (idx !== -1) {
+            history[idx].items = [...cart]; 
+            history[idx].total = total; 
+            if (!history[idx].date.includes("(խմբ.)")) history[idx].date += " (խմբ.)";
+        }
         editingOrderId = null;
     } else {
         const user = prompt("Պատվիրատու:");
         if (!user) return;
         history.unshift({ id: Date.now(), customer: user, items: [...cart], total, date: new Date().toLocaleString("hy-AM") });
     }
+    
     localStorage.setItem("orderHistory", JSON.stringify(history));
+    
+    // ՀԵՐԹԱԿԱՆՈՒԹՅՈՒՆԸ ՓՈԽԵՑԻՆՔ
     cart = []; 
-    refreshUI(); 
-    closeCart(); // <--- ԱՅՍՏԵՂ ՓԱԿՈՒՄ Է ԶԱՄԲՅՈՒՂԸ
-    showSection('history');
+    closeCart(); // 1. Փակել զամբյուղը
+    refreshUI(); // 2. Թարմացնել UI-ը
+    showSection('history'); // 3. Գնալ պատմություն
 }
 
-// 6. Պատմություն
 function renderHistory() {
     const list = document.getElementById("history-list");
     list.innerHTML = history.map(h => `
@@ -229,7 +232,10 @@ function openOrderDetails(id) {
 function editExistingOrder(id) {
     const order = history.find(h => String(h.id) === String(id));
     cart = JSON.parse(JSON.stringify(order.items));
-    editingOrderId = id; closeOrderDetails(); refreshUI(); showSection('catalog');
+    editingOrderId = id; 
+    closeOrderDetails(); 
+    refreshUI(); 
+    showSection('catalog');
 }
 
 function toggleSelect(id) {
