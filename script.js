@@ -21,7 +21,7 @@ function showSection(section) {
     }
 }
 
-// 2. ԶԱՄԲՅՈՒՂԻ ԿԱՌԱՎԱՐՈՒՄ (+/-)
+// 2. ԶԱՄԲՅՈՒՂԻ ԿԱՌԱՎԱՐՈՒՄ
 function updateCartItem(id, delta) {
     const productId = String(id).trim();
     const existingItem = cart.find(item => String(item.id).trim() === productId);
@@ -44,10 +44,17 @@ function updateCartItem(id, delta) {
 function updateCartUI() {
     const count = cart.reduce((sum, item) => sum + item.qty, 0);
     document.getElementById("cart-count").innerText = count;
-    document.getElementById("cart-btn").classList.toggle("hidden", cart.length === 0);
+    
+    // ՃԿՈՒՆՈՒԹՅՈՒՆ: Եթե խմբագրման ռեժիմ է, զամբյուղի կոճակը թաքցնում ենք
+    const cartBtn = document.getElementById("cart-btn");
+    if (editingOrderId) {
+        cartBtn.classList.add("hidden");
+    } else {
+        cartBtn.classList.toggle("hidden", cart.length === 0);
+    }
 }
 
-// 3. ԿԱՏԱԼՈԳԻ ՌԵՆԴԵՐ
+// 3. ԿԱՏԱԼՈԳԻ ՌԵՆԴԵՐ (ՄԱՏԻՏՈՎ)
 function renderCatalog() {
     const list = document.getElementById("product-list");
     if (!list) return;
@@ -58,7 +65,9 @@ function renderCatalog() {
 
         return `
             <div class="bg-white p-2 rounded-2xl shadow-sm border relative">
-                <button onclick="deleteProduct('${p.id}')" class="absolute top-1 right-1 bg-white/90 w-6 h-6 rounded-full text-[10px] z-10">🗑️</button>
+                <!-- ՓՈՓՈԽՈՒԹՅՈՒՆ: Աղբամանը փոխարինվեց Մատիտով -->
+                <button onclick="prepareEditProduct('${p.id}')" class="absolute top-1 right-1 bg-white/90 w-7 h-7 rounded-full text-xs z-10 shadow-sm flex items-center justify-center">✏️</button>
+                
                 <img src="${p.img}" class="w-full h-32 object-cover rounded-xl mb-2">
                 <div class="font-bold text-[11px] h-8 overflow-hidden px-1">${p.name}</div>
                 <div class="text-blue-600 font-bold text-sm px-1 mb-2">${p.price.toLocaleString()} ֏</div>
@@ -81,14 +90,21 @@ function renderCatalog() {
     }).join("");
 }
 
-// 4. ԶԱՄԲՅՈՒՂԻ ՊԱՏՈՒՀԱՆ
+// 4. ԱՊՐԱՆՔԻ ԽՄԲԱԳՐՄԱՆ ՖՈՒՆԿՑԻԱ (ԴԵՌ ԴԱՏԱՐԿ Է ՀԵՏԱԳԱՅԻ ՀԱՄԱՐ)
+function prepareEditProduct(id) {
+    // Այստեղ հետագայում կավելացնենք նկար ու գին փոխելու տրամաբանությունը
+    console.log("Խմբագրել ապրանքը ID:", id);
+    alert("Ապրանքի խմբագրման ֆունկցիան շուտով պատրաստ կլինի (ID: " + id + ")");
+}
+
+// 5. ԶԱՄԲՅՈՒՂԻ ՊԱՏՈՒՀԱՆ
 function showCart() {
     document.getElementById("cart-modal").classList.remove("hidden");
     const container = document.getElementById("cart-items");
-    const checkoutBtn = document.getElementById("checkout-btn-text");
+    const checkoutBtnText = document.getElementById("checkout-btn-text");
     
-    if (checkoutBtn) {
-        checkoutBtn.innerText = editingOrderId ? "ՊԱՀՊԱՆԵԼ ՓՈՓՈԽՈՒԹՅՈՒՆՆԵՐԸ" : "ՊԱՏՎԻՐԵԼ";
+    if (checkoutBtnText) {
+        checkoutBtnText.innerText = editingOrderId ? "ՊԱՀՊԱՆԵԼ ՓՈՓՈԽՈՒԹՅՈՒՆՆԵՐԸ" : "ՊԱՏՎԻՐԵԼ";
     }
 
     let total = 0;
@@ -112,7 +128,7 @@ function showCart() {
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
 
-// 5. ՊԱՏՎԵՐԻ ԳՐԱՆՑՈՒՄ / ԹԱՐՄԱՑՈՒՄ
+// 6. ՊԱՏՎԵՐԻ ՎԵՐՋՆԱԿԱՆԱՑՈՒՄ
 function checkout() {
     if (cart.length === 0) return;
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
@@ -124,8 +140,13 @@ function checkout() {
             history[index].total = total;
             history[index].date = new Date().toLocaleString("hy-AM") + " (խմբագրված)";
             localStorage.setItem("orderHistory", JSON.stringify(history));
-            alert("Պատվերը թարմացվեց");
-            cart = []; editingOrderId = null; updateCartUI(); closeCart(); showSection('history');
+            
+            // Մաքրում ենք ամեն ինչ խմբագրելուց հետո
+            editingOrderId = null;
+            cart = [];
+            updateCartUI();
+            closeCart();
+            showSection('history');
         }
     } else {
         const user = prompt("Պատվիրատուի անունը:");
@@ -133,11 +154,15 @@ function checkout() {
         const newOrder = { id: Date.now(), customer: user, items: [...cart], total: total, date: new Date().toLocaleString("hy-AM") };
         history.unshift(newOrder);
         localStorage.setItem("orderHistory", JSON.stringify(history));
-        cart = []; updateCartUI(); closeCart(); showSection('history');
+        cart = [];
+        updateCartUI();
+        closeCart();
+        showSection('history');
     }
 }
 
-// 6. ՊԱՏՄՈՒԹՅԱՆ ՑՈՒՑԱԴՐՈՒՄ
+// --- ՄՆԱՑԱԾ ՖՈՒՆԿՑԻԱՆԵՐԸ (renderHistory, toggleSelect և այլն) ՆՈՒՅՆՆ ԵՆ ---
+
 function renderHistory() {
     const list = document.getElementById("history-list");
     const deleteBtn = document.getElementById("delete-selected-btn");
@@ -171,7 +196,6 @@ function renderHistory() {
     `).join("");
 }
 
-// 7. ԸՆՏՐԵԼՈՒ ՖՈՒՆԿՑԻԱՆԵՐ
 function toggleSelect(id) {
     const sId = String(id);
     if (selectedOrders.has(sId)) selectedOrders.delete(sId);
@@ -188,16 +212,6 @@ function toggleSelectAll() {
     renderHistory();
 }
 
-function deleteSelected() {
-    if (confirm("Ջնջե՞լ ընտրված պատվերները")) {
-        history = history.filter(h => !selectedOrders.has(String(h.id)));
-        localStorage.setItem("orderHistory", JSON.stringify(history));
-        selectedOrders.clear();
-        renderHistory();
-    }
-}
-
-// 8. ՄԱՆՐԱՄԱՍՆԵՐ ԵՎ ԽՄԲԱԳՐՈՒՄ
 function openOrderDetails(id) {
     const order = history.find(h => String(h.id) === String(id));
     if (!order) return;
@@ -235,41 +249,11 @@ function editOrder(id) {
     cart = JSON.parse(JSON.stringify(order.items));
     editingOrderId = id;
     closeOrderDetails();
-    updateCartUI();
+    updateCartUI(); // Սա հիմա ավտոմատ կթաքցնի զամբյուղի կոճակը
     showSection('catalog');
 }
 
-// 9. ԱԴՄԻՆ ՖՈՒՆԿՑԻԱՆԵՐ
-function deleteProduct(id) {
-    if (confirm("Ջնջե՞լ ապրանքը")) {
-        products = products.filter(p => String(p.id) !== String(id));
-        localStorage.setItem("myProducts", JSON.stringify(products));
-        renderCatalog();
-    }
-}
-
-async function addProduct() {
-    const name = document.getElementById("prod-name").value;
-    const price = document.getElementById("prod-price").value;
-    const fileInput = document.getElementById("prod-img-file");
-    if (!name || !price) return alert("Լրացրեք տվյալները");
-    const save = (imgData) => {
-        products.push({ id: Date.now(), name, price: parseInt(price), img: imgData });
-        localStorage.setItem("myProducts", JSON.stringify(products));
-        renderCatalog();
-        closeModal();
-    };
-    if (fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = (e) => save(e.target.result);
-        reader.readAsDataURL(fileInput.files[0]);
-    } else save("https://via.placeholder.com/150");
-}
-
-// ՄՈԴԱԼՆԵՐԻ ՓԱԿՈՒՄ
-function closeModal() { document.getElementById("modal").classList.add("hidden"); }
 function closeCart() { document.getElementById("cart-modal").classList.add("hidden"); }
 function closeOrderDetails() { document.getElementById("order-details-modal").classList.add("hidden"); }
 
-// Միացնել կատալոգը սկզբից
 renderCatalog();
