@@ -5,7 +5,7 @@ let selectedOrders = new Set();
 let editingOrderId = null;
 let currentEditingProductId = null;
 
-function showSection(section) {
+function showSection(section) { 
     const headerTitle = document.getElementById("main-title");
     const addBtn = document.getElementById("add-btn");
     
