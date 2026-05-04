@@ -5,18 +5,22 @@ let selectedOrders = new Set();
 let editingOrderId = null;
 let currentEditingProductId = null;
 
-// 1. Բաժինների փոփոխություն և Վերնագրի կառավարում
+// 1. Բաժինների փոփոխություն (Կոճակի թաքցնելը այստեղ է)
 function showSection(section) {
     const headerTitle = document.getElementById("main-title");
+    const addBtn = document.getElementById("add-btn"); // (+) կոճակը
+    
     document.getElementById("catalog-section").classList.toggle("hidden", section !== "catalog");
     document.getElementById("history-section").classList.toggle("hidden", section !== "history");
     
     if (section === 'history') {
         headerTitle.innerText = "ՊԱՏՎԵՐՆԵՐ";
+        addBtn.classList.add("hidden"); // Թաքցնել (+) կոճակը Պատմության մեջ
         selectedOrders.clear(); 
         renderHistory();
     } else {
         headerTitle.innerText = "ԿԱՏԱԼՈԳ";
+        addBtn.classList.remove("hidden"); // Ցուցադրել (+) կոճակը Կատալոգում
         renderCatalog();
     }
 
@@ -24,7 +28,7 @@ function showSection(section) {
     document.getElementById("nav-history").className = section === 'history' ? 'flex flex-col items-center flex-1 text-blue-600 font-bold' : 'flex flex-col items-center flex-1 text-gray-400';
 }
 
-// 2. Նոր ապրանք ավելացնել
+// 2. Ապրանքի ավելացում
 function openAddProductModal() { document.getElementById("add-product-modal").classList.remove("hidden"); }
 function closeAddProductModal() {
     document.getElementById("add-product-modal").classList.add("hidden");
@@ -37,9 +41,7 @@ async function saveNewProduct() {
     const name = document.getElementById("add-p-name").value;
     const price = parseInt(document.getElementById("add-p-price").value);
     const imgInput = document.getElementById("add-p-img-input");
-
     if (!name || !price || !imgInput.files[0]) return alert("Լրացրեք բոլոր դաշտերը");
-
     const reader = new FileReader();
     reader.onload = function(e) {
         products.push({ id: Date.now().toString(), name, price, img: e.target.result });
@@ -65,7 +67,7 @@ function renderCatalog() {
                         <i data-lucide="pencil" class="w-4 h-4 text-blue-600"></i>
                     </div>
                 </div>
-                <div class="font-bold text-[11px] px-1 h-8 overflow-hidden">${p.name}</div>
+                <div class="font-bold text-[11px] px-1 h-8 overflow-hidden uppercase">${p.name}</div>
                 <div class="text-blue-600 font-bold text-sm px-1 mb-2">${p.price.toLocaleString()} ֏</div>
                 <div class="flex items-center gap-1">
                     <button onclick="updateCartItem('${p.id}', -1)" class="w-8 h-8 bg-gray-100 rounded-lg font-bold">-</button>
@@ -77,14 +79,13 @@ function renderCatalog() {
     lucide.createIcons();
 }
 
-// 4. Նկարի մեծացում
 function zoomImage(src) {
     document.getElementById("zoomed-image").src = src;
     document.getElementById("image-zoom-modal").classList.remove("hidden");
 }
 function closeImageZoom() { document.getElementById("image-zoom-modal").classList.add("hidden"); }
 
-// 5. Ապրանքի խմբագրում
+// 4. Ապրանքի խմբագրում
 function openEditProduct(id) {
     const p = products.find(x => String(x.id) === String(id));
     if (!p) return;
@@ -101,27 +102,21 @@ async function saveProductChanges() {
     const price = parseInt(document.getElementById("edit-p-price").value);
     const imgInput = document.getElementById("edit-p-img-input");
     const idx = products.findIndex(x => String(x.id) === String(currentEditingProductId));
-
     products[idx].name = name;
     products[idx].price = price;
-
     if (imgInput.files && imgInput.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-            products[idx].img = e.target.result;
-            finishSaving();
-        };
+        reader.onload = function(e) { products[idx].img = e.target.result; finishSaving(); };
         reader.readAsDataURL(imgInput.files[0]);
     } else { finishSaving(); }
 }
-
 function finishSaving() {
     localStorage.setItem("myProducts", JSON.stringify(products));
     closeEditProduct();
     renderCatalog();
 }
 
-// 6. Զամբյուղի ֆունկցիաներ
+// 5. Զամբյուղ և Պատվեր
 function updateCartItem(id, delta) {
     const pId = String(id);
     let item = cart.find(i => String(i.id) === pId);
@@ -157,12 +152,13 @@ function refreshUI() {
     document.getElementById("cart-count").innerText = count;
     document.getElementById("cart-btn").classList.toggle("hidden", cart.length === 0 && !editingOrderId);
     renderCatalog();
-    if (!document.getElementById("cart-modal").classList.contains("hidden")) showCart();
 }
 
 function showCart() {
     document.getElementById("cart-modal").classList.remove("hidden");
     const container = document.getElementById("cart-items");
+    const btnText = document.getElementById("checkout-btn-text");
+    btnText.innerText = editingOrderId ? "ՊԱՀՊԱՆԵԼ" : "ՊԱՏՎԻՐԵԼ";
     let total = 0;
     container.innerHTML = cart.map(item => {
         total += item.price * item.qty;
@@ -178,12 +174,15 @@ function showCart() {
     document.getElementById("cart-total-price").innerText = total.toLocaleString() + " ֏";
 }
 
+// Պատվերի վերջնականացում և ԶԱՄԲՅՈՒՂԻ ՓԱԿՈՒՄ
 function checkout() {
     if (cart.length === 0) return;
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
     if (editingOrderId) {
         const idx = history.findIndex(h => String(h.id) === String(editingOrderId));
-        history[idx].items = [...cart]; history[idx].total = total; history[idx].date += " (խմբ.)";
+        history[idx].items = [...cart]; 
+        history[idx].total = total; 
+        if (!history[idx].date.includes("(խմբ.)")) history[idx].date += " (խմբ.)";
         editingOrderId = null;
     } else {
         const user = prompt("Պատվիրատու:");
@@ -191,10 +190,13 @@ function checkout() {
         history.unshift({ id: Date.now(), customer: user, items: [...cart], total, date: new Date().toLocaleString("hy-AM") });
     }
     localStorage.setItem("orderHistory", JSON.stringify(history));
-    cart = []; refreshUI(); closeCart(); showSection('history');
+    cart = []; 
+    refreshUI(); 
+    closeCart(); // <--- ԱՅՍՏԵՂ ՓԱԿՈՒՄ Է ԶԱՄԲՅՈՒՂԸ
+    showSection('history');
 }
 
-// 7. Պատմություն և Պատվերի մանրամասներ
+// 6. Պատմություն
 function renderHistory() {
     const list = document.getElementById("history-list");
     list.innerHTML = history.map(h => `
@@ -218,8 +220,8 @@ function openOrderDetails(id) {
             <h2 class="font-black text-lg text-blue-600 uppercase italic">${order.customer}</h2>
             <button onclick="editExistingOrder('${order.id}')" class="bg-blue-50 p-2 rounded-xl"><i data-lucide="pencil" class="w-5 h-5 text-blue-600"></i></button>
         </div>` + 
-        order.items.map(i => `<div class="flex gap-3 mb-3 items-center"><img src="${i.img}" class="w-12 h-12 object-cover rounded-xl shadow-sm"><div class="flex flex-col"><span class="text-xs font-bold">${i.name}</span><span class="text-[11px] text-blue-500 font-black">${i.qty} հատ</span></div></div>`).join("") +
-        `<div class="mt-6 pt-4 border-t font-black text-lg text-blue-600 text-right italic">ԸՆԴՀԱՆՈՒՐ: ${order.total.toLocaleString()} ֏</div>`;
+        order.items.map(i => `<div class="flex gap-3 mb-3 items-center"><img src="${i.img}" class="w-12 h-12 object-cover rounded-xl shadow-sm"><div class="flex flex-col"><span class="text-xs font-bold uppercase">${i.name}</span><span class="text-[11px] text-blue-500 font-black">${i.qty} հատ</span></div></div>`).join("") +
+        `<div class="mt-6 pt-4 border-t font-black text-lg text-blue-600 text-right italic uppercase">ԸՆԴՀԱՆՈՒՐ: ${order.total.toLocaleString()} ֏</div>`;
     document.getElementById("order-details-modal").classList.remove("hidden");
     lucide.createIcons();
 }
