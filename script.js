@@ -10,7 +10,7 @@ function showSection(section) {
     document.getElementById("nav-catalog").className = section === 'catalog' ? 'flex flex-col items-center flex-1 text-blue-600 font-bold' : 'flex flex-col items-center flex-1 text-gray-400';
     document.getElementById("nav-history").className = section === 'history' ? 'flex flex-col items-center flex-1 text-blue-600 font-bold' : 'flex flex-col items-center flex-1 text-gray-400';
     if (section === "history") { selectedOrders.clear(); renderHistory(); }
-    if (section === "catalog") { renderCatalog(); }
+    if (section === "catalog") { renderCatalog(); } 
 }
 
 function updateCartItem(id, delta) {
