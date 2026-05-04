@@ -21,6 +21,38 @@
             🛒 <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
         </button>
     </header>
+    <!-- Նկարը մեծացնելու պատուհան -->
+<div id="image-zoom-modal" class="fixed inset-0 bg-black z-[100] hidden flex items-center justify-center" onclick="closeImageZoom()">
+    <img id="zoomed-image" src="" class="max-w-full max-h-full object-contain">
+</div>
+
+<!-- Ապրանքը խմբագրելու պատուհան -->
+<div id="edit-product-modal" class="fixed inset-0 bg-black/50 z-[70] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
+        <h2 class="text-xl font-black mb-4 italic text-blue-600">ԽՄԲԱԳՐԵԼ ԱՊՐԱՆՔԸ</h2>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] font-bold text-gray-400">ԱՆՈՒՆ</label>
+                <input type="text" id="edit-p-name" class="w-full bg-gray-50 border rounded-xl p-3 font-bold">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-gray-400">ԳԻՆ (֏)</label>
+                <input type="number" id="edit-p-price" class="w-full bg-gray-50 border rounded-xl p-3 font-bold">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-gray-400">ՆԿԱՐ</label>
+                <input type="file" id="edit-p-img-input" accept="image/*" class="w-full text-xs">
+                <img id="edit-p-preview" src="" class="w-20 h-20 object-cover rounded-xl mt-2 border">
+            </div>
+        </div>
+
+        <div class="flex gap-2 mt-6">
+            <button onclick="closeEditProduct()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold">ՉԵՂԱՐԿԵԼ</button>
+            <button onclick="saveProductChanges()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">ՊԱՀՊԱՆԵԼ</button>
+        </div>
+    </div>
+</div>
 
     <main id="catalog-section" class="p-4 pb-32">
         <div id="product-list" class="grid grid-cols-2 gap-3"></div>
