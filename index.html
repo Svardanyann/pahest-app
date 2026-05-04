@@ -3,100 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Իմ Խանութը</title>
+    <title>Մարի - Կատալոգ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .hidden { display: none; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-50 text-gray-900">
 
-    <!-- Կատալոգի Բաժին -->
-    <div id="catalog-section" class="p-4 pb-24">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-black text-gray-800">Ապրանքներ</h1>
-            <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-200">+ ՆՈՐ</button>
+    <!-- HEADER -->
+    <header class="bg-white border-b sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
+        <h1 class="text-xl font-black text-blue-600 italic">ՄԱՐԻ</h1>
+        <button id="cart-btn" onclick="showCart()" class="relative p-2 bg-blue-50 rounded-full hidden">
+            🛒 <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+        </button>
+    </header>
+
+    <!-- CATALOG SECTION -->
+    <main id="catalog-section" class="p-4 pb-32">
+        <div id="product-list" class="grid grid-cols-2 gap-3">
+            <!-- Ապրանքները կհայտնվեն այստեղ -->
         </div>
-        <div id="product-list" class="grid grid-cols-2 gap-3"></div>
-    </div>
+    </main>
 
-    <!-- Պատմության բաժինը -->
-<div id="history-section" class="hidden p-4 pb-24">
-    <div class="flex flex-col gap-4 mb-6">
-        <h1 class="text-2xl font-black text-gray-800">Պատվերներ</h1>
-        <div class="flex gap-2">
-            <button id="select-all-btn" onclick="toggleSelectAll()" class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold">
-                Ընտրել բոլորը
-            </button>
-            <button id="delete-selected-btn" onclick="deleteSelected()" class="hidden flex-1 bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-red-200">
-                Ջնջել (0)
-            </button>
+    <!-- HISTORY SECTION -->
+    <section id="history-section" class="hidden p-4 pb-32">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-black">Պատմություն</h2>
+            <div class="flex gap-2">
+                <button id="select-all-btn" onclick="toggleSelectAll()" class="text-xs bg-gray-200 px-3 py-1.5 rounded-lg font-bold">Ընտրել բոլորը</button>
+                <button id="delete-selected-btn" onclick="deleteSelected()" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-bold hidden italic">Ջնջել</button>
+            </div>
         </div>
-    </div>
-    <div id="history-list" class="space-y-1"></div>
-</div>
+        <div id="history-list">
+            <!-- Պատվերները կհայտնվեն այստեղ -->
+        </div>
+        <!-- ՈՒՇԱԴՐՈՒԹՅՈՒՆ: ԱՅՍՏԵՂԻՑ ՊԱՏՎԻՐԵԼ ԿՈՃԱԿԸ ՀԱՆՎԱԾ Է -->
+    </section>
 
-<!-- Զամբյուղի Modal-ի մեջ «ՊԱՏՎԻՐԵԼ» կոճակի տեքստը -->
-<!-- Համոզվիր, որ սա կա քո կոդում -->
-<button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-sm">
-    <span id="checkout-btn-text">ՊԱՏՎԻՐԵԼ</span>
-</button>
-
-    <!-- Ներքևի Նավիգացիա -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t flex py-3 px-6 z-50">
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex py-2 px-6 shadow-lg z-50">
         <button id="nav-catalog" onclick="showSection('catalog')" class="flex flex-col items-center flex-1 text-blue-600 font-bold">
-            <span class="text-xl">🏠</span><span class="text-[10px]">Խանութ</span>
+            <span class="text-xl">📦</span>
+            <span class="text-[10px]">Կատալոգ</span>
         </button>
         <button id="nav-history" onclick="showSection('history')" class="flex flex-col items-center flex-1 text-gray-400">
-            <span class="text-xl">📜</span><span class="text-[10px]">Պատմություն</span>
+            <span class="text-xl">📜</span>
+            <span class="text-[10px]">Պատմություն</span>
         </button>
-    </div>
+    </nav>
 
-    <!-- Զամբյուղի Կոճակ -->
-    <button id="cart-btn" onclick="showCart()" class="hidden fixed bottom-20 right-4 bg-orange-500 text-white p-4 rounded-full shadow-2xl z-50 animate-bounce">
-        🛒 <span id="cart-count" class="bg-white text-orange-500 rounded-full px-2 py-0.5 text-xs font-black ml-1">0</span>
-    </button>
-
-    <!-- Ավելացման Մոդալ -->
-    <div id="modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl">
-            <h2 class="text-xl font-black mb-4">Ապրանքի տվյալներ</h2>
-            <input id="prod-name" type="text" placeholder="Ապրանքի անունը" class="w-full border p-4 rounded-2xl mb-3 outline-none focus:border-blue-500 bg-gray-50">
-            <input id="prod-price" type="number" placeholder="Գինը (֏)" class="w-full border p-4 rounded-2xl mb-3 outline-none focus:border-blue-500 bg-gray-50">
-            <input id="prod-img-file" type="file" accept="image/*" class="w-full mb-6 text-sm text-gray-500">
-            <div class="flex gap-2">
-                <button onclick="closeModal()" class="flex-1 py-4 font-bold text-gray-500 bg-gray-100 rounded-2xl">Չեղարկել</button>
-                <button onclick="addProduct()" class="flex-1 py-4 font-bold text-white bg-blue-600 rounded-2xl shadow-lg">Ավելացնել</button>
+    <!-- CART MODAL -->
+    <div id="cart-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-end">
+        <div class="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-black">Իմ Զամբյուղը</h2>
+                <button onclick="closeCart()" class="text-2xl font-light">✕</button>
             </div>
+            <div id="cart-items" class="mb-6"></div>
+            <div class="flex justify-between items-center mb-6 pt-4 border-t">
+                <span class="font-bold text-gray-500">Ընդհանուր գումար</span>
+                <span id="cart-total-price" class="text-xl font-black text-blue-600">0 ֏</span>
+            </div>
+            <!-- ՄԻԱՅՆ ԱՅՍՏԵՂ Է ՄՆԱՑԵԼ ՊԱՏՎԻՐԵԼԸ -->
+            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg active:scale-95 transition-transform">
+                <span id="checkout-btn-text">ՊԱՏՎԻՐԵԼ</span>
+            </button>
         </div>
     </div>
 
-    <!-- Զամբյուղի Մոդալ -->
-    <div id="cart-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-end justify-center p-0">
-        <div class="bg-white w-full max-w-lg rounded-t-[32px] p-6 animate-slide-up">
-            <h2 class="text-xl font-black mb-4 text-gray-800">Ձեր զամբյուղը</h2>
-            <div id="cart-items" class="space-y-3 max-h-64 overflow-y-auto mb-6"></div>
-            <div class="flex justify-between items-center mb-6 font-black text-lg">
-                <span>Ընդհանուր՝</span><span id="cart-total-price" class="text-blue-600">0 ֏</span>
+    <!-- ORDER DETAILS MODAL (Պատմության մեջ պատվերը բացելու համար) -->
+    <div id="order-details-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 relative">
+            <button onclick="closeOrderDetails()" class="absolute top-4 right-4 text-xl">✕</button>
+            <div id="order-details-content">
+                <!-- Պատվերի մանրամասները նկարներով կհայտնվեն այստեղ -->
             </div>
-            <div class="flex gap-2">
-                <button onclick="closeCart()" class="flex-1 py-4 font-bold text-gray-500 bg-gray-100 rounded-2xl">Հետ</button>
-              <!--  <button onclick="checkout()" class="flex-[2] py-4 font-bold text-white bg-green-500 rounded-2xl shadow-lg">
-    <span id="checkout-btn-text">ՊԱՏՎԻՐԵԼ</span>
-</button>-->
-            </div>
-        </div>
-    </div>
-
-    <!-- Պատվերի մանրամասների պատուհան (Նոր) -->
-    <div id="order-details-modal" class="hidden fixed inset-0 z-[110] flex items-end justify-center p-0">
-        <div onclick="closeOrderDetails()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-        <div class="relative bg-white w-full max-w-lg rounded-t-[32px] p-6 shadow-2xl animate-slide-up">
-            <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
-            <div id="order-details-content"></div>
-            <button onclick="closeOrderDetails()" class="w-full mt-6 bg-gray-100 text-gray-800 py-4 rounded-2xl font-black">ՓԱԿԵԼ</button>
         </div>
     </div>
 
