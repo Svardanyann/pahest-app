@@ -9,7 +9,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .hidden { display: none; } 
+        .hidden { display: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -17,7 +17,6 @@
     <header class="bg-white border-b sticky top-0 z-50 px-4 py-3 flex justify-between items-center shadow-sm">
         <h1 id="main-title" class="text-xl font-black text-blue-600 italic uppercase">ԿԱՏԱԼՈԳ</h1>
         <div class="flex items-center gap-3">
-            <!-- ԱՎԵԼԱՑՆԵԼՈՒ ԿՈՃԱԿ -->
             <button id="add-btn" onclick="openAddProductModal()" class="bg-blue-600 text-white p-2 rounded-lg active:scale-90 transition-all">
                 <i data-lucide="plus" class="w-5 h-5"></i>
             </button>
@@ -48,7 +47,7 @@
         </button>
         <button id="nav-history" onclick="showSection('history')" class="flex flex-col items-center flex-1 text-gray-400">
             <span class="text-xl">📜</span>
-            <span class="text-[10px]">Պատմություն</span>
+            <span class="text-[10px]">Պատվերներ</span>
         </button>
     </nav>
 
@@ -99,8 +98,8 @@
                 <span class="font-bold text-gray-400 italic">ԸՆԴՀԱՆՈՒՐ</span>
                 <span id="cart-total-price" class="text-xl font-black text-blue-600">0 ֏</span>
             </div>
-            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase">
-                <span id="checkout-btn-text">ՊԱՏՎԻՐԵԼ</span>
+            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">
+                <span id="checkout-btn-text" class="uppercase">ՊԱՏՎԻՐԵԼ</span>
             </button>
         </div>
     </div>
