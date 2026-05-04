@@ -1,10 +1,9 @@
 let products = JSON.parse(localStorage.getItem("myProducts")) || [];
-let history = JSON.parse(localStorage.getItem("orderHistory")) || [];
+let history = JSON.parse(localStorage.getItem("orderHistory")) || []; // Այս տողը շատ կարևոր է
 let cart = [];
 let selectedOrders = new Set();
 let editingOrderId = null;
-let currentEditingProductId = null; 
-
+let currentEditingProductId = null;
 function showSection(section) { 
     const headerTitle = document.getElementById("main-title");
     const addBtn = document.getElementById("add-btn");
@@ -175,15 +174,20 @@ function showCart() {
 
 function checkout() {
     try {
-        if (cart.length === 0) {
+        // 1. Ստուգում ենք՝ արդյոք զամբյուղը դատարկ չէ
+        if (!cart || cart.length === 0) {
+            alert("Զամբյուղը դատարկ է");
             closeCart();
             return;
         }
 
+        // 2. Հաշվում ենք ընդհանուր գումարը
         const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
         
-        if (editingOrderId) {
-            // Գտնում ենք հին պատվերը և թարմացնում
+        // 3. Եթե խմբագրում ենք հին պատվերը
+        if (editingOrderId !== null && editingOrderId !== undefined) {
+            if (!Array.isArray(history)) history = []; // Ապահովագրություն
+            
             const idx = history.findIndex(h => String(h.id) === String(editingOrderId));
             if (idx !== -1) {
                 history[idx].items = JSON.parse(JSON.stringify(cart)); 
@@ -192,11 +196,14 @@ function checkout() {
                     history[idx].date += " (խմբ.)";
                 }
             }
-            editingOrderId = null; // Մաքրում ենք խմբագրման ID-ն
-        } else {
-            // Նոր պատվեր
+            editingOrderId = null; 
+        } 
+        // 4. Եթե նոր պատվեր է
+        else {
             const user = prompt("Պատվիրատուի անունը:");
-            if (!user) return; // Եթե անուն չգրվի, դուրս կգա առանց ջնջելու զամբյուղը
+            if (!user) return; 
+
+            if (!Array.isArray(history)) history = []; // Ապահովագրություն
 
             const newOrder = {
                 id: Date.now(),
@@ -208,22 +215,23 @@ function checkout() {
             history.unshift(newOrder);
         }
         
-        // Պահպանում ենք LocalStorage-ում
+        // 5. Պահպանում ենք LocalStorage-ում
         localStorage.setItem("orderHistory", JSON.stringify(history));
         
-        // Մաքրում ենք զամբյուղը
+        // 6. Մաքրում ենք զամբյուղը և փակում պատուհանը
         cart = []; 
-        
-        // Փակում ենք պատուհանը (Առաջնահերթ)
         closeCart();
         
-        // Թարմացնում ենք էկրանը
+        // 7. Թարմացնում ենք էկրանը
         refreshUI(); 
-        showSection('history');
+        if (typeof showSection === "function") {
+            showSection('history');
+        }
         
     } catch (error) {
-        console.error("Սխալ պատվերը պահպանելիս:", error);
-        alert("Տեղի է ունեցել սխալ։ Փորձեք նորից։");
+        // Սա կօգնի քեզ տեսնել իրական սխալը Console-ում
+        console.error("Error details:", error);
+        alert("Սխալը հետևյալն է. " + error.message);
     }
 }
 function renderHistory() {
