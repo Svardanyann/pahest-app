@@ -6,7 +6,7 @@
     <title>Պատվերների համակարգ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style> 
+    <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .hidden { display: none; }
@@ -17,7 +17,8 @@
     <header class="bg-white border-b sticky top-0 z-50 px-4 py-3 flex justify-between items-center shadow-sm">
         <h1 id="main-title" class="text-xl font-black text-blue-600 italic uppercase">ԿԱՏԱԼՈԳ</h1>
         <div class="flex items-center gap-3">
-            <button onclick="openAddProductModal()" class="bg-blue-600 text-white p-2 rounded-lg active:scale-90 transition-all">
+            <!-- ԱՎԵԼԱՑՆԵԼՈՒ ԿՈՃԱԿ -->
+            <button id="add-btn" onclick="openAddProductModal()" class="bg-blue-600 text-white p-2 rounded-lg active:scale-90 transition-all">
                 <i data-lucide="plus" class="w-5 h-5"></i>
             </button>
             <button id="cart-btn" onclick="showCart()" class="relative p-2 bg-blue-50 rounded-full hidden">
@@ -51,12 +52,11 @@
         </button>
     </nav>
 
-    <!-- ՆԿԱՐԸ ՄԵԾԱՑՆԵԼՈՒ ՄՈԴԱԼ -->
+    <!-- ՄՈԴԱԼՆԵՐ -->
     <div id="image-zoom-modal" class="fixed inset-0 bg-black z-[100] hidden flex items-center justify-center" onclick="closeImageZoom()">
         <img id="zoomed-image" src="" class="max-w-full max-h-full object-contain">
     </div>
 
-    <!-- ԱՎԵԼԱՑՆԵԼՈՒ ՄՈԴԱԼ -->
     <div id="add-product-modal" class="fixed inset-0 bg-black/50 z-[70] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
             <h2 class="text-xl font-black mb-4 italic text-blue-600 uppercase">Նոր ապրանք</h2>
@@ -72,7 +72,6 @@
         </div>
     </div>
 
-    <!-- ԽՄԲԱԳՐԵԼՈՒ ՄՈԴԱԼ -->
     <div id="edit-product-modal" class="fixed inset-0 bg-black/50 z-[70] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
             <h2 class="text-xl font-black mb-4 italic text-blue-600 uppercase">Խմբագրել</h2>
@@ -89,7 +88,6 @@
         </div>
     </div>
 
-    <!-- ԶԱՄԲՅՈՒՂ -->
     <div id="cart-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-end">
         <div class="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
@@ -101,13 +99,12 @@
                 <span class="font-bold text-gray-400 italic">ԸՆԴՀԱՆՈՒՐ</span>
                 <span id="cart-total-price" class="text-xl font-black text-blue-600">0 ֏</span>
             </div>
-            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">
-                <span id="checkout-btn-text uppercase">ՊԱՏՎԻՐԵԼ</span>
+            <button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase">
+                <span id="checkout-btn-text">ՊԱՏՎԻՐԵԼ</span>
             </button>
         </div>
     </div>
 
-    <!-- ՊԱՏՎԵՐԻ ՄԱՆՐԱՄԱՍՆԵՐ -->
     <div id="order-details-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 relative shadow-2xl">
             <button onclick="closeOrderDetails()" class="absolute top-4 right-4 text-xl text-gray-400">✕</button>
