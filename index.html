@@ -22,12 +22,11 @@
         <div id="product-list" class="grid grid-cols-2 gap-3"></div>
     </div>
 
-    <!-- Պատմության Բաժին -->
+    <!-- Պատմության բաժինը -->
 <div id="history-section" class="hidden p-4 pb-24">
     <div class="flex flex-col gap-4 mb-6">
         <h1 class="text-2xl font-black text-gray-800">Պատվերներ</h1>
         <div class="flex gap-2">
-            <!-- Բոլորը ընտրելու նոր կոճակ -->
             <button id="select-all-btn" onclick="toggleSelectAll()" class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold">
                 Ընտրել բոլորը
             </button>
@@ -38,6 +37,12 @@
     </div>
     <div id="history-list" class="space-y-1"></div>
 </div>
+
+<!-- Զամբյուղի Modal-ի մեջ «ՊԱՏՎԻՐԵԼ» կոճակի տեքստը -->
+<!-- Համոզվիր, որ սա կա քո կոդում -->
+<button onclick="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-sm">
+    <span id="checkout-btn-text">ՊԱՏՎԻՐԵԼ</span>
+</button>
 
     <!-- Ներքևի Նավիգացիա -->
     <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t flex py-3 px-6 z-50">
