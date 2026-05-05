@@ -1,7 +1,7 @@
 const products = [
-    { id: "1", name: "ՊԱՄԻՆԱԿ ՏՈՒՓՈՎ", price: 5500, img: "images/paminak_tup.jpg" },
+    { id: "1", name: "ՊԱՄԻՆԱԿ ՏՈՒՓՈՎ", price: 5500, img: "images/paminak.png" },
     { id: "2", name: "ՆԱՐԻՆԱԿ", price: 4800, img: "images/narinak.jpg" },
-    { id: "3", name: "ՊԱՄԻՆԱԿ 1", price: 3500, img: "images/paminak1.jpg" }
+    { id: "3", name: "ՊԱՄԻՆԱԿ 1", price: 3500, img: "images/paminak2.jpg" }
     // Ավելացրու մնացածը այստեղ
 ];
 
