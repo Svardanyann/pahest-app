@@ -5,7 +5,7 @@ const products = [
         id: "1", 
         name: "ՊԱՄԻՆԱԿ ՏՈՒՓՈՎ", 
         price: 5500, 
-        img: "images/paminak.jpg" 
+        img: "images/paminak.png" 
     },
     { 
         id: "2", 
@@ -17,7 +17,7 @@ const products = [
         id: "3", 
         name: "ՊԱՄԻՆԱԿ 1", 
         price: 3500, 
-        img: "images/paminak1.jpg"
+        img: "images/paminak2.jpg"
     }
 ];
 
