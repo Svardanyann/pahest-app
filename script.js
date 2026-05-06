@@ -5,7 +5,7 @@ const imgPath = "images/";
 let products = JSON.parse(localStorage.getItem("myProducts")) || [
     { id: 1, name: "Paminak", price: 100, img: "paminak.jpg" },
     { id: 2, name: "Paminak 1", price: 120, img: "paminak1.jpg" }
-];
+]; 
 
 let history = JSON.parse(localStorage.getItem("orderHistory")) || []; 
 let tempOrderQty = {}; // Ժամանակավոր քանակները պահելու համար
