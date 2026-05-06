@@ -1,42 +1,191 @@
 <!DOCTYPE html>
 <html lang="hy">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pahest - Կատալոգ</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-    <header>
-        <h1 id="page-title">ԿԱՏԱԼՈԳ</h1>
-    </header>
-
-    <section id="catalog-section">
-        <div id="catalog-grid" class="grid"></div>
-    </section>
-
-    <section id="history-section" style="display:none;">
-        <div id="history-list"></div>
-    </section>
-
-    <nav class="bottom-nav">
-        <button onclick="showSection('catalog')">🏠</button>
-        <button onclick="openCart()">🛒 <span id="cart-count">0</span></button>
-        <button onclick="showSection('history')">📜</button>
-    </nav>
-
-    <div id="cart-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeCart()">&times;</span>
-            <h2>Զամբյուղ</h2>
-            <div id="cart-items"></div>
-            <hr>
-            <p>Ընդհանուր: <b id="cart-total">0</b> դրամ</p>
-            <!-- «Հաստատել պատվեր» կոճակը հեռացված է -->
-        </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Իմ Պահեստը</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 pb-20">
+    <!-- Վերևի Մաս -->
+    <div
+      class="bg-blue-600 text-white p-4 sticky top-0 z-10 flex justify-between items-center shadow-md"
+    >
+      <h1 class="font-bold">Իմ Վաճառքները</h1>
+      <button
+        onclick="openModal()"
+        class="bg-white text-blue-600 px-3 py-1 rounded-lg text-sm font-bold"
+      >
+        + Նոր Ապրանք
+      </button>
     </div>
 
-    <script src="script.js"></script>
-</body>
+    <div id="app" class="p-4">
+      <!-- Կատալոգի Բաժին -->
+      <div id="catalog-section">
+        <h2 class="font-bold mb-4 text-gray-700">Ապրանքների Կատալոգ</h2>
+        <div id="product-list" class="grid grid-cols-2 gap-4"></div>
+      </div>
+
+      <!-- Պատմության Բաժին -->
+      <div id="history-section" class="hidden text-sm">
+        <h2 class="font-bold mb-4 text-gray-700 text-lg">
+          Պատվերների Պատմություն
+        </h2>
+        <div id="history-list" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- Նոր Ապրանքի Պատուհան (Modal) -->
+    <div
+      id="modal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-20"
+    >
+      <div class="bg-white p-6 rounded-xl w-full max-w-sm">
+        <h3 class="font-bold mb-4">Ավելացնել Ապրանք</h3>
+        <input
+          id="prod-name"
+          type="text"
+          placeholder="Անուն"
+          class="w-full border p-2 mb-2 rounded"
+        />
+        <input
+          id="prod-price"
+          type="number"
+          placeholder="Գին (֏)"
+          class="w-full border p-2 mb-2 rounded"
+        />
+        <input
+          id="prod-img"
+          type="text"
+          placeholder="Նկարի հղում (URL)"
+          class="w-full border p-2 mb-4 rounded"
+        />
+        <div class="flex gap-2">
+          <button onclick="closeModal()" class="flex-1 border p-2 rounded">
+            Փակել
+          </button>
+          <button
+            onclick="addProduct()"
+            class="flex-1 bg-blue-600 text-white p-2 rounded font-bold"
+          >
+            Ավելացնել
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ներքևի Մենյու -->
+    <nav
+      class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-3 shadow-inner z-10"
+    >
+      <button
+        onclick="showSection('catalog')"
+        class="text-blue-600 font-bold flex flex-col items-center"
+      >
+        <span>📦</span> Կատալոգ
+      </button>
+      <button
+        onclick="showSection('history')"
+        class="text-gray-500 font-bold flex flex-col items-center"
+      >
+        <span>📜</span> Պատմություն
+      </button>
+    </nav>
+
+    <script>
+      let products = JSON.parse(localStorage.getItem("myProducts")) || [];
+      let history = JSON.parse(localStorage.getItem("orderHistory")) || [];
+
+      function showSection(section) {
+        document
+          .getElementById("catalog-section")
+          .classList.toggle("hidden", section !== "catalog");
+        document
+          .getElementById("history-section")
+          .classList.toggle("hidden", section !== "history");
+        if (section === "history") renderHistory();
+      }
+
+      function openModal() {
+        document.getElementById("modal").classList.remove("hidden");
+      }
+      function closeModal() {
+        document.getElementById("modal").classList.add("hidden");
+      }
+
+      function addProduct() {
+        const name = document.getElementById("prod-name").value;
+        const price = document.getElementById("prod-price").value;
+        const img =
+          document.getElementById("prod-img").value ||
+          "https://via.placeholder.com/150";
+
+        if (name && price) {
+          products.push({ id: Date.now(), name, price, img });
+          localStorage.setItem("myProducts", JSON.stringify(products));
+          renderCatalog();
+          closeModal();
+          // Մաքրել դաշտերը
+          document.getElementById("prod-name").value = "";
+          document.getElementById("prod-price").value = "";
+          document.getElementById("prod-img").value = "";
+        }
+      }
+
+      function renderCatalog() {
+        const list = document.getElementById("product-list");
+        list.innerHTML =
+          products.length === 0
+            ? '<p class="col-span-2 text-center text-gray-400 mt-10">Ապրանք չկա: Ավելացրու առաջինը!</p>'
+            : "";
+        products.forEach((p) => {
+          list.innerHTML += `
+                    <div class="bg-white p-2 rounded-lg shadow border border-gray-100">
+                        <img src="${p.img}" class="w-full h-32 object-cover rounded mb-2" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                        <div class="font-bold text-sm">${p.name}</div>
+                        <div class="text-blue-600 font-bold">${p.price} ֏</div>
+                        <button onclick="makeOrder('${p.name}', ${p.price})" class="w-full bg-green-600 text-white mt-2 py-1 rounded text-xs">Գրանցել Պատվեր</button>
+                    </div>
+                `;
+        });
+      }
+
+      function makeOrder(name, price) {
+        const qty = prompt(name + " - Քանակը:", 1);
+        if (qty > 0) {
+          const order = {
+            id: Date.now(),
+            text: name + " (x" + qty + ")",
+            total: price * qty,
+            date: new Date().toLocaleString("hy-AM"),
+          };
+          history.unshift(order);
+          localStorage.setItem("orderHistory", JSON.stringify(history));
+          alert("Պատվերը գրանցվեց!");
+        }
+      }
+
+      function renderHistory() {
+        const list = document.getElementById("history-list");
+        list.innerHTML =
+          history.length === 0
+            ? '<p class="text-center text-gray-400">Դեռ պատվերներ չկան</p>'
+            : "";
+        history.forEach((h) => {
+          list.innerHTML += `
+                    <div class="bg-white p-3 rounded shadow-sm border-l-4 border-green-500">
+                        <div class="flex justify-between font-bold">
+                            <span>${h.text}</span>
+                            <span class="text-green-600">${h.total} ֏</span>
+                        </div>
+                        <div class="text-[10px] text-gray-400 italic">${h.date}</div>
+                    </div>
+                `;
+        });
+      }
+
+      renderCatalog();
+    </script>
+  </body>
 </html>
