@@ -7,7 +7,7 @@ let products = JSON.parse(localStorage.getItem("myProducts")) || [
     { id: 2, name: "Paminak 1", price: 120, img: "paminak1.jpg" }
 ];
 
-let history = JSON.parse(localStorage.getItem("orderHistory")) || [];
+let history = JSON.parse(localStorage.getItem("orderHistory")) || []; 
 let tempOrderQty = {}; // Ժամանակավոր քանակները պահելու համար
 
 function showSection(section) {
