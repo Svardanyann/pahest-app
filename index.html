@@ -52,4 +52,23 @@
 
     <script src="script.js"></script>
 </body>
+    <script>
+    // Սխալները էկրանին ցուցադրելու համար
+    window.onerror = function(message, source, lineno, colno, error) {
+        let div = document.createElement('div');
+        div.style = "position:fixed; top:0; left:0; width:100%; background:red; color:white; z-index:9999; padding:10px; font-size:12px;";
+        div.innerHTML = "<b>Սխալ կոդի մեջ:</b> " + message + "<br>Տող: " + lineno;
+        document.body.appendChild(div);
+    };
+
+    // Ստուգում ենք՝ արդյոք CSS-ն ու JS-ը բեռնվել են
+    window.addEventListener('error', function(e) {
+        if (e.target.tagName === 'LINK' || e.target.tagName === 'SCRIPT') {
+            let div = document.createElement('div');
+            div.style = "position:fixed; top:50px; left:0; width:100%; background:orange; color:black; z-index:9999; padding:10px; font-size:12px;";
+            div.innerHTML = "<b>Ֆայլը չի գտնվել:</b> " + (e.target.src || e.target.href);
+            document.body.appendChild(div);
+        }
+    }, true);
+</script>
 </html>
